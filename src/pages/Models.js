@@ -1,4 +1,6 @@
+// src/pages/Models.js
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import Navbar from '../components/Navbar';
 import '../styles/Models.css';
 
 const Models = () => {
@@ -34,6 +36,7 @@ const Models = () => {
 
   return (
     <div className="models-page">
+      <Navbar />
       <div className="search-bar">
         <input
           type="text"
@@ -62,6 +65,7 @@ const Models = () => {
             <option value="text">Text</option>
             <option value="audio">Audio</option>
           </select>
+          <button className="apply-filters-btn" onClick={handleSearch}>Apply Filters</button>
         </aside>
         <div className="model-list">
           {filteredModels.map((model) => (

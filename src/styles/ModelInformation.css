@@ -1,0 +1,42 @@
+/* ModelInformation.css */
+
+/* Model Information List */
+.model-information-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 20px;
+    background-color: #fff; /* White background to match page */
+}
+
+/* Model Information Card */
+.model-information-card {
+    background-color: #f7f7f7; /* Light grey background for contrast */
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: left;
+    color: #000; /* Black text color for contrast */
+    width: 100%;
+    max-width: 600px; /* Suitable width for detailed view */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds shadow for depth */
+    transition: transform 0.3s, background-color 0.3s; /* Smooth transition */
+}
+
+/* Hover Effect */
+.model-information-card:hover {
+    transform: translateY(-5px);
+    background-color: #ffffff; /* Change to white on hover */
+}
+
+.model-information-card h3 {
+    font-size: 1.5rem;
+    color: #fa9405; /* Theme color for headings */
+    margin-bottom: 0.5rem;
+}
+
+.model-information-card p {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+    color: #000; /* Black text color for contrast */
+}
