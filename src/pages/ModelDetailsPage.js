@@ -1,9 +1,9 @@
 // src/pages/ModelDetailsPage.js
 import React from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import ModelInformation from '../components/ModelInformation';
 import ModelTestingForm from '../components/ModelTestingForm';
+import '../styles/ModelDetailsPage.css';
 
 const ModelDetailsPage = () => {
   return (
@@ -14,7 +14,6 @@ const ModelDetailsPage = () => {
         <ModelInformation />
         <ModelTestingForm />
       </main>
-      <Footer />
     </div>
   );
 };

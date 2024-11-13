@@ -1,6 +1,6 @@
 // src/components/ModelTestingForm.js
 import React, { useState } from 'react';
-
+import '../styles/ModelTestingForm.css';
 
 const ModelTestingForm = () => {
   const [image, setImage] = useState(null);

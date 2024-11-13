@@ -1,8 +1,9 @@
 // src/pages/Models.js
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import FeatureSelection from '../components/FeatureSelection';
+import ModelSearch from '../components/ModelSearch';
+import '../styles/Models.css';
 
 const Models = () => {
   const initialModels = [
@@ -22,6 +23,7 @@ const Models = () => {
   return (
     <div>
       <Navbar />
+      <ModelSearch models={initialModels} setFilteredModels={setFilteredModels} />
       <section className="models-page">
         <div className="container">
           <aside className="sidebar">
@@ -43,7 +45,6 @@ const Models = () => {
           </div>
         </div>
       </section>
-      <Footer />
     </div>
   );
 };

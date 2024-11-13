@@ -1,5 +1,6 @@
 // src/components/Slideshow.js
 import React, { useEffect, useState } from 'react';
+import '../styles/Slideshow.css';
 
 const Slideshow = () => {
   const [slideIndex, setSlideIndex] = useState(0);
@@ -22,8 +23,7 @@ const Slideshow = () => {
       {slides.map((src, index) => (
         <div
           key={index}
-          className="slide"
-          style={{ display: index === slideIndex ? 'block' : 'none' }}
+          className={`slide ${index === slideIndex ? 'active' : ''}`}
         >
           <img src={src} alt={`Slide ${index + 1}`} />
         </div>

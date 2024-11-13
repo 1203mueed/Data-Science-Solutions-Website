@@ -1,39 +1,27 @@
 // src/components/FeatureSelection.js
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import '../styles/FeatureSelection.css';
 
 const FeatureSelection = ({ models, setFilteredModels }) => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [taskFilter, setTaskFilter] = useState('');
   const [dataTypeFilter, setDataTypeFilter] = useState('');
 
-  // Function to filter models based on search and selected filters
-  const applyFilters = () => {
+  // Memoized applyFilters function
+  const applyFilters = useCallback(() => {
     const filtered = models.filter(model => {
-      const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesTask = taskFilter ? model.task === taskFilter : true;
       const matchesDataType = dataTypeFilter ? model.dataType === dataTypeFilter : true;
-      return matchesSearch && matchesTask && matchesDataType;
+      return matchesTask && matchesDataType;
     });
     setFilteredModels(filtered);
-  };
+  }, [models, taskFilter, dataTypeFilter, setFilteredModels]);
 
-  // Apply filters whenever search term or filters change
-  React.useEffect(() => {
+  useEffect(() => {
     applyFilters();
-  }, [searchTerm, taskFilter, dataTypeFilter]);
+  }, [applyFilters]);
 
   return (
     <div className="feature-selection">
-      {/* Search Bar */}
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search models"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
       {/* Filters */}
       <div className="filters">
         <label htmlFor="task-filter">Filter by Task</label>
@@ -53,6 +41,8 @@ const FeatureSelection = ({ models, setFilteredModels }) => {
           <option value="text">Text</option>
           <option value="audio">Audio</option>
         </select>
+
+        <button className="apply-filters-btn" onClick={applyFilters}>Apply Filters</button>
       </div>
     </div>
   );
