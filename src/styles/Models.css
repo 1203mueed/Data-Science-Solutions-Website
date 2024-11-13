@@ -1,0 +1,51 @@
+/* Models.css */
+
+/* General Page Styles */
+.container {
+    display: flex;
+    padding: 2rem;
+    background-color: #f4f4f4; /* Light background color for a different look */
+}
+
+.main-content {
+    flex: 1;
+    color: #000; /* Set text color to black */
+}
+
+.models-container .model-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Decreased gap */
+    margin-top: 2rem;
+    justify-content: center;
+    align-items: center;
+    width: 100%; /* Centers model list */
+}
+
+.models-container .model-card {
+    background-color: #ffffff; /* Changed background to white */
+    padding: 1rem; /* Decreased height */
+    border-radius: 8px;
+    text-align: left;
+    color: #000; /* Changed text color to black */
+    transition: transform 0.3s;
+    width: 100%;
+    max-width: 600px; /* Adjusted max width */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow for depth */
+    text-decoration: none; /* Remove underline from links */
+}
+
+.models-container .model-card:hover {
+    transform: translateY(-5px);
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly different hover effect */
+}
+
+.models-container .model-card h3 {
+    font-size: 1.25rem; /* Decreased font size */
+    color: #fa9405;
+}
+
+.models-container .model-card p {
+    font-size: 0.875rem; /* Decreased font size */
+    margin: 0.5rem 0; /* Add some margin to the paragraphs */
+}

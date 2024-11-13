@@ -1,0 +1,36 @@
+/* src/components/ModelTestingForm.css */
+.upload-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+  }
+  
+  .predictions-section {
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    background-color: #f9f9f9;
+  }
+  
+  .prediction-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .prediction-results p {
+    margin: 5px 0;
+  }
+  
+  .uploaded-image {
+    margin-top: 20px;
+    max-width: 300px;
+    width: 100%;
+    border-radius: 8px;
+  }

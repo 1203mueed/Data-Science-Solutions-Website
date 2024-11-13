@@ -1,0 +1,120 @@
+/* Competition Page Styling */
+.competition-page {
+    background: linear-gradient(to right, #f0f2f5, #d9dee4);
+    color: #333;
+    font-family: Arial, sans-serif;
+    padding-top: 80px; /* Adjust for navbar */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .competition-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #f0ad4e;
+    margin-bottom: 1rem;
+  }
+  
+  /* Host Competition Button */
+  .host-competition-btn {
+    display: block;
+    margin: 1rem auto;
+    padding: 0.7rem 2rem;
+    background-color: #fa9405;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .host-competition-btn:hover {
+    background-color: #d18d2c;
+  }
+  
+  /* Competition Card Styling */
+  .competition-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    padding: 0 2rem 3rem; /* Bottom padding for footer */
+  }
+  
+  .competition-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    max-width: 320px;
+    width: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .competition-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .competition-card-title {
+    font-size: 1.5rem;
+    color: #fa9405;
+    margin-bottom: 0.5rem;
+  }
+  
+  .competition-description {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
+  }
+  
+  /* Competition Details */
+  .competition-details p {
+    font-size: 0.9rem;
+    color: #333;
+    margin: 0.3rem 0;
+  }
+  
+  .competition-details strong {
+    font-weight: bold;
+    color: #fa9405;
+  }
+  
+  /* Status Badge Styling */
+  .status {
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+  }
+  
+  .status.ongoing {
+    color: #fff;
+    background-color: #28a745;
+  }
+  
+  .status.closed {
+    color: #fff;
+    background-color: #dc3545;
+  }
+  
+  .status.upcoming {
+    color: #fff;
+    background-color: #ffc107;
+  }
+  
+  /* Footer Position Adjustment */
+  footer {
+    margin-top: auto; /* Push footer to the bottom */
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .competition-list {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  

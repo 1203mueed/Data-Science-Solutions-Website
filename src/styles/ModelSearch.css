@@ -1,0 +1,38 @@
+/* Model Search Styling */
+.model-search {
+    display: flex;
+    justify-content: flex-start; /* Align to the left initially */
+    align-items: center;
+    padding: 1rem;
+    background-color: #fff; /* Align with main content background */
+    border-radius: 8px;
+    margin: 6rem auto 2rem; /* Adjust top margin to be below the navbar */
+    width: 80%; /* Adjust width for better alignment */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+    padding-left: 10%; /* Adjust this to move it right */
+}
+
+.model-search input {
+    width: 70%; /* Adjust width */
+    padding: 0.75rem; /* Add padding for better appearance */
+    font-size: 1rem; /* Increase font size */
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-right: 1rem;
+    text-align: center; /* Center the placeholder text */
+}
+
+.model-search button {
+    padding: 0.75rem 1rem; /* Adjust padding for consistency */
+    background-color: #fa9405;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.model-search button:hover {
+    background-color: #d18d2c;
+}
