@@ -5,36 +5,36 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #ffffff; /* Set background to white */
-    padding: 0 20px 20px; /* Adjust padding to eliminate top margin */
-    margin-top: -20px; /* Move the page up */
+    background-color: #ffffff;
+    padding: 0 20px 20px;
+    margin-top: -20px; /* Adjusts the page alignment with the navbar */
 }
 
 /* Search Bar */
 .models-page .search-bar {
     display: flex;
-    width: 50%; /* Adjust the width of the search bar */
-    max-width: 500px; /* Reduce max-width */
-    margin: 1.5rem auto; /* Center the search bar with margin auto */
-    justify-content: flex-end; /* Align search bar to the right */
+    width: 60%; /* Increase width to match the wider model container */
+    max-width: 500px; /* Adjust max-width for larger screens */
+    margin: 1.5rem auto;
+    justify-content: center; /* Center the search bar */
     gap: 1rem;
-    background-color: #f7f7f7; /* Light grey background for contrast */
+    background-color: #f7f7f7;
     border-radius: 5px;
-    padding: 0.5rem; /* Add padding around the search bar */
+    padding: 0.5rem;
 }
 
 .models-page .search-bar input {
     flex: 1;
-    padding: 0.5rem; /* Adjust padding */
+    padding: 0.5rem;
     font-size: 1rem;
     border-radius: 5px;
     border: 1px solid #ccc;
     text-align: center;
-    background-color: #ffffff; /* White background for input */
+    background-color: #ffffff;
 }
 
 .models-page .search-bar button {
-    padding: 0.5rem 1rem; /* Adjust padding */
+    padding: 0.5rem 1rem;
     background-color: #fa9405;
     color: #fff;
     border: none;
@@ -48,52 +48,54 @@
     background-color: #d18d2c;
 }
 
-/* Models Container */
+/* Main Layout */
 .models-page .models-container {
-    display: flex; 
-    padding: 2rem; 
-    background-color: #ffffff; /* White background */
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #ffffff;
 }
 
-/* Sidebar for Filters */
+/* Sidebar */
 .models-page .sidebar {
-    width: 250px; 
-    background-color: #f4f4f4; /* Light grey background for contrast */
-    padding: 1.5rem; 
-    margin-right: 2rem; 
-    color: #000; /* Set text color to black for contrast */ 
-    border-radius: 8px; 
-    align-self: flex-start; /* Limit the height of the sidebar */ 
-} 
-.models-page .sidebar h3 { 
-    color: #fa9405; /* Theme color */
-} 
-.models-page .sidebar label, .models-page .sidebar select { 
-    display: block; 
-    width: 100%; 
-    margin-top: 1rem; 
-    color: #000; /* Set label and dropdown text color to black */ 
-} 
-.models-page .sidebar select { 
-    background-color: #ffffff; /* Set dropdown background to white */ 
-    border: 1px solid #ccc; 
-    color: #000; /* Set dropdown text color to black */ 
-} 
-.models-page .sidebar select option { 
-    background-color: #ffffff; /* Set dropdown options background to white */ 
-    color: #000; /* Set dropdown options text color to black */ 
+    width: 250px;
+    background-color: #f4f4f4;
+    padding: 1.5rem;
+    margin-right: 2rem;
+    color: #000;
+    border-radius: 8px;
+    align-self: flex-start;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Apply Filters Button */
+.models-page .sidebar h3 {
+    color: #fa9405;
+}
+
+.models-page .sidebar label, .models-page .sidebar select {
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+    color: #000;
+}
+
+.models-page .sidebar select {
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    color: #000;
+}
+
 .models-page .apply-filters-btn {
     margin-top: 1.5rem;
     padding: 0.5rem 1rem;
-    background-color: #fa9405; /* Theme color */
+    background-color: #fa9405;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+    width: 100%;
     transition: background-color 0.3s;
 }
 
@@ -104,38 +106,39 @@
 /* Model List */
 .models-page .model-list {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 1.5rem;
-    justify-content: flex-start;
-    flex: 1;
+    align-items: center;
+    width: 100%; /* Centered and full-width container */
 }
 
 /* Model Card */
 .models-page .model-card {
-    background-color: #ffe0b2; /* Initial orangish background color */
-    padding: 1rem; 
-    border-radius: 8px; 
-    text-align: left; 
-    color: #000; /* Set text color to black */
-    transition: transform 0.3s, background-color 0.3s; /* Add transition for background-color */
-    width: 100%; 
-    max-width: 1200px; /* Increased max width for rectangular look */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow for depth */
-    text-decoration: none; /* Remove underline from links */
+    background-color: #ffe0b2; /* Initial orangish background */
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: left;
+    color: #000;
+    transition: transform 0.3s, background-color 0.3s;
+    width: 90%; /* Make model cards wider and more rectangular */
+    max-width: 800px;
+    height: auto; /* Compact height */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
 }
 
 .models-page .model-card:hover {
     transform: translateY(-5px);
-    background-color: #ffffff; /* Change to white on hover */
+    background-color: #ffffff;
 }
 
 .models-page .model-card h3 {
     font-size: 1.25rem;
-    color: #fa9405; /* Theme color */
+    color: #fa9405;
 }
 
 .models-page .model-card p {
     font-size: 0.875rem;
     margin: 0.5rem 0;
-    color: #000; /* Set text color to black */
+    color: #000;
 }

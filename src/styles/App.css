@@ -1,6 +1,7 @@
 :root {
     --primary-color: #fa9405;
     --secondary-color: #f0ad4e;
+    --navbar-height: 80px;
 }
 
 html, body {
@@ -12,6 +13,8 @@ html, body {
 body {
     background: linear-gradient(to right, #f0f2f5, #d9dee4);
     font-family: Arial, sans-serif;
+    background-size: cover;
+    opacity: 0.9;
 }
 
 #root {
@@ -21,15 +24,6 @@ body {
 }
 
 .main-content {
-    padding-top: 80px; /* Consistent space below navbar */
+    padding-top: var(--navbar-height); /* Use variable for consistent padding */
     flex: 1; 
-}
-
-.background-overlay {
-    background-size: cover;
-    opacity: 0.9;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
 }

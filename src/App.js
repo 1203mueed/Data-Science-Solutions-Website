@@ -7,6 +7,7 @@ import Models from './pages/Models';
 import ModelDetailsPage from './pages/ModelDetailsPage';
 import CompetitionPage from './pages/CompetitionPage';
 import Navbar from './components/Navbar';
+import PricingPage from './pages/PricingPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Route path="/models" element={<Models />} />
             <Route path="/model-details" element={<ModelDetailsPage />} />
             <Route path="/competitions" element={<CompetitionPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
             {/* Add other routes as needed */}
           </Routes>
         </div>
