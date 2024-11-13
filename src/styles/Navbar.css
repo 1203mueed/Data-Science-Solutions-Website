@@ -1,6 +1,6 @@
 /* Navbar Styling */
 .navbar {
-  position: fixed; /* Fix the navbar at the top of the page */
+  position: fixed;
   top: 0;
   width: 100%;
   z-index: 1000;
@@ -16,7 +16,7 @@
 .navbar .logo {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #f0ad4e;
+  color: var(--secondary-color);
   text-decoration: none;
 }
 
@@ -36,6 +36,6 @@
 .navbar ul li a:hover,
 .navbar ul li a.active,
 .login-btn:hover {
-  background-color: #f0ad4e;
+  background-color: var(--primary-color);
   color: #000;
 }

@@ -1,8 +1,5 @@
 // src/pages/Models.js
-import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
-import FeatureSelection from '../components/FeatureSelection';
-import ModelSearch from '../components/ModelSearch';
+import React, { useState, useCallback, useEffect } from 'react';
 import '../styles/Models.css';
 
 const Models = () => {
@@ -19,32 +16,71 @@ const Models = () => {
   ];
 
   const [filteredModels, setFilteredModels] = useState(initialModels);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [taskFilter, setTaskFilter] = useState('');
+  const [dataTypeFilter, setDataTypeFilter] = useState('');
+
+  const handleSearch = useCallback(() => {
+    const filtered = initialModels.filter(model =>
+      model.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (taskFilter ? model.task === taskFilter : true) &&
+      (dataTypeFilter ? model.dataType === dataTypeFilter : true)
+    );
+    setFilteredModels(filtered);
+  }, [initialModels, searchTerm, taskFilter, dataTypeFilter]);
+
+  // Automatically apply filters whenever search term or filters change
+  useEffect(() => {
+    handleSearch();
+  }, [searchTerm, taskFilter, dataTypeFilter, handleSearch]);
 
   return (
-    <div>
-      <Navbar />
-      <ModelSearch models={initialModels} setFilteredModels={setFilteredModels} />
-      <section className="models-page">
-        <div className="container">
-          <aside className="sidebar">
-            <FeatureSelection models={initialModels} setFilteredModels={setFilteredModels} />
-          </aside>
+    <div className="models-page">
+      {/* Search Bar under Navbar */}
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search models"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <button onClick={handleSearch}>Search</button>
+      </div>
 
-          <div className="main-content">
-            <div className="models-container">
-              <div className="model-list">
-                {filteredModels.map((model) => (
-                  <a href="/model-details" key={model.id} className="model-card">
-                    <h3>{model.name}</h3>
-                    <p>{model.description}</p>
-                    <p><strong>Published by:</strong> {model.publishedBy}</p>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
+      <div className="models-container">
+        {/* Sidebar for Filter Options */}
+        <aside className="sidebar">
+          <h3>Filter Models</h3>
+          <label htmlFor="task-filter">Filter by Task</label>
+          <select id="task-filter" value={taskFilter} onChange={(e) => setTaskFilter(e.target.value)}>
+            <option value="">All Tasks</option>
+            <option value="classification">Classification</option>
+            <option value="object-detection">Object Detection</option>
+            <option value="recommendation">Recommendation</option>
+            <option value="chatbot">Chatbot</option>
+            <option value="prediction">Prediction</option>
+          </select>
+
+          <label htmlFor="data-type-filter">Filter by Data Type</label>
+          <select id="data-type-filter" value={dataTypeFilter} onChange={(e) => setDataTypeFilter(e.target.value)}>
+            <option value="">All Data Types</option>
+            <option value="image">Image</option>
+            <option value="text">Text</option>
+            <option value="audio">Audio</option>
+          </select>
+        </aside>
+
+        {/* Model List */}
+        <div className="model-list">
+          {filteredModels.map((model) => (
+            <a href="/model-details" key={model.id} className="model-card">
+              <h3>{model.name}</h3>
+              <p>{model.description}</p>
+              <p><strong>Published by:</strong> {model.publishedBy}</p>
+            </a>
+          ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 };

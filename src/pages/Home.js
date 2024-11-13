@@ -2,6 +2,7 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Slideshow from '../components/Slideshow';
+import Footer from '../components/Footer';
 import '../styles/Home.css';
 
 const Home = () => {
@@ -39,6 +40,7 @@ const Home = () => {
           </div>
         </div>
       </section>
+
       <section id="notebooks" className="feature">
           <div className="feature-content">
               <img src="/img/notebooks2.png" alt="Notebooks" />
@@ -49,6 +51,7 @@ const Home = () => {
               </div>
           </div>
       </section>
+
       <section id="models" className="feature">
           <div className="feature-content reverse">
               <img src="/img/models2.png" alt="Models" />
@@ -69,9 +72,9 @@ const Home = () => {
                 <a href="#competitions" className="view-all">View All</a>
             </div>
         </div>
-    </section>
+      </section>
 
-    <section id="work-with-team" className="feature">
+      <section id="work-with-team" className="feature">
         <div className="feature-content reverse">
             <img src="/img/teamwork2.gif" alt="Work With a Team" />
             <div className="info-box">
@@ -80,9 +83,9 @@ const Home = () => {
                 <a href="#work-with-team" className="view-all">View All</a>
             </div>
         </div>
-    </section>
+      </section>
 
-    <section id="learn" className="feature">
+      <section id="learn" className="feature">
         <div className="feature-content">
             <img src="/img/learn2.png" alt="Learn" />
             <div className="info-box">
@@ -91,9 +94,9 @@ const Home = () => {
                 <a href="#learn" className="view-all">View All</a>
             </div>
         </div>
-    </section>
+      </section>
 
-    <section id="blogs" className="feature">
+      <section id="blogs" className="feature">
         <div className="feature-content reverse">
             <img src="/img/blogs3.png" alt="Blogs" />
             <div className="info-box">
@@ -102,9 +105,9 @@ const Home = () => {
                 <a href="#blogs" className="view-all">View All</a>
             </div>
         </div>
-    </section>
+      </section>
 
-    <section id="pricing" className="feature">
+      <section id="pricing" className="feature">
         <div className="feature-content">
             <img src="/img/pricing2.png" alt="Pricing" />
             <div className="info-box">
@@ -113,7 +116,9 @@ const Home = () => {
                 <a href="#pricing" className="view-all">View All</a>
             </div>
         </div>
-    </section>
+      </section>
+      
+      <Footer />
     </div>
   );
 };

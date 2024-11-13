@@ -53,7 +53,6 @@ const CompetitionPage = () => {
       prizeMoney: "$6,500",
       description: "Leverage NLP to analyze sentiment, classify text, and enhance chatbots' conversational abilities."
     },
-    // Add more dummy competitions as needed
   ];
 
   return (

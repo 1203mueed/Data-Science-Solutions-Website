@@ -25,7 +25,7 @@
 .apply-filters-btn {
     margin-top: 1.5rem;
     padding: 0.5rem 1rem;
-    background-color: #fa9405;
+    background-color: var(--primary-color);
     color: #fff;
     border: none;
     border-radius: 5px;

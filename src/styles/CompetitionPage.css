@@ -3,7 +3,6 @@
     background: linear-gradient(to right, #f0f2f5, #d9dee4);
     color: #333;
     font-family: Arial, sans-serif;
-    padding-top: 80px; /* Adjust for navbar */
     min-height: 100vh;
     display: flex;
     flex-direction: column;

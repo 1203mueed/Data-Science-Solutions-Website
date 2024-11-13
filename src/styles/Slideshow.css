@@ -1,10 +1,9 @@
 /* Slideshow Container */
 .slideshow-container {
-    padding-top: 60px;
     max-width: 100%;
     position: relative;
     margin: 1rem auto;
-    height: calc(100vh - 100px); /* Adjusts to fit within viewport minus navbar height */
+    height: calc(100vh - 100px);
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -28,11 +27,11 @@
 
 /* Slide Image Styling */
 .slide img {
-    width: auto;              /* Allow width to scale naturally */
-    height: auto;             /* Allow height to scale naturally */
-    max-width: 100%;          /* Constrain width to container’s width */
-    max-height: 100%;         /* Constrain height to fit within the container’s height */
-    object-fit: contain;      /* Ensure the full image is visible without cropping */
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
     border-radius: 10px;
 }
 

@@ -1,51 +1,118 @@
-/* Models.css */
+/* src/styles/Models.css */
 
-/* General Page Styles */
-.container {
-    display: flex;
-    padding: 2rem;
-    background-color: #f4f4f4; /* Light background color for a different look */
-}
-
-.main-content {
-    flex: 1;
-    color: #000; /* Set text color to black */
-}
-
-.models-container .model-list {
+/* Page Layout */
+.models-page {
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Decreased gap */
-    margin-top: 2rem;
-    justify-content: center;
     align-items: center;
-    width: 100%; /* Centers model list */
 }
 
-.models-container .model-card {
-    background-color: #ffffff; /* Changed background to white */
-    padding: 1rem; /* Decreased height */
+/* Search Bar */
+.search-bar {
+    display: flex;
+    width: 80%;
+    max-width: 800px;
+    margin: 1.5rem 0;
+    gap: 1rem;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.search-bar button {
+    padding: 0.75rem 1rem;
+    background-color: #fa9405;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.search-bar button:hover {
+    background-color: #d18d2c;
+}
+
+/* Models Container */
+.models-container {
+    display: flex;
+    width: 80%;
+    max-width: 1200px;
+    gap: 2rem;
+}
+
+/* Sidebar for Filters */
+.sidebar {
+    flex: 0 0 250px;
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    align-self: flex-start;
+}
+
+.sidebar h3 {
+    color: #fa9405;
+    margin-bottom: 1rem;
+}
+
+.sidebar label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.sidebar select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Model List */
+.model-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: flex-start;
+    flex: 1;
+}
+
+/* Model Card */
+.model-card {
+    background-color: #ffffff;
+    padding: 1.5rem;
     border-radius: 8px;
     text-align: left;
-    color: #000; /* Changed text color to black */
+    color: #000;
     transition: transform 0.3s;
     width: 100%;
-    max-width: 600px; /* Adjusted max width */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow for depth */
-    text-decoration: none; /* Remove underline from links */
+    max-width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
 }
 
-.models-container .model-card:hover {
+.model-card:hover {
     transform: translateY(-5px);
-    background-color: rgba(255, 255, 255, 0.9); /* Slightly different hover effect */
+    background-color: rgba(255, 255, 255, 0.9);
 }
 
-.models-container .model-card h3 {
-    font-size: 1.25rem; /* Decreased font size */
+.model-card h3 {
+    font-size: 1.25rem;
     color: #fa9405;
 }
 
-.models-container .model-card p {
-    font-size: 0.875rem; /* Decreased font size */
-    margin: 0.5rem 0; /* Add some margin to the paragraphs */
+.model-card p {
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
 }
