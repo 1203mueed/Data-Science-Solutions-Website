@@ -2,7 +2,6 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Slideshow from '../components/Slideshow';
-import Footer from '../components/Footer';
 import '../styles/Home.css';
 
 const Home = () => {
@@ -117,8 +116,6 @@ const Home = () => {
             </div>
         </div>
       </section>
-      
-      <Footer />
     </div>
   );
 };

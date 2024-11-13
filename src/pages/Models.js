@@ -1,9 +1,8 @@
-// src/pages/Models.js
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import '../styles/Models.css';
 
 const Models = () => {
-  const initialModels = [
+  const initialModels = useMemo(() => [
     { id: 1, name: "Skin Lesion Detection", description: "Analyze image data to determine different types of skin lesions.", publishedBy: "NSU_ACERS", task: "classification", dataType: "image" },
     { id: 2, name: "Image Classification Model", description: "Classify images into various categories with high accuracy.", publishedBy: "VisionExpert", task: "classification", dataType: "image" },
     { id: 3, name: "Object Detection Model", description: "Detect and identify objects within an image.", publishedBy: "AI Innovators", task: "object-detection", dataType: "image" },
@@ -13,7 +12,7 @@ const Models = () => {
     { id: 7, name: "Recommendation Model", description: "Recommend products or content based on user preferences.", publishedBy: "RecoMaster", task: "recommendation", dataType: "text" },
     { id: 8, name: "Chatbot Model", description: "Engage in conversations and answer questions.", publishedBy: "ChatBotCo", task: "chatbot", dataType: "text" },
     { id: 9, name: "Weather Prediction Model", description: "Predict weather conditions based on historical data.", publishedBy: "WeatherGenius", task: "prediction", dataType: "text" },
-  ];
+  ], []); // Note the empty dependency array
 
   const [filteredModels, setFilteredModels] = useState(initialModels);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,14 +28,12 @@ const Models = () => {
     setFilteredModels(filtered);
   }, [initialModels, searchTerm, taskFilter, dataTypeFilter]);
 
-  // Automatically apply filters whenever search term or filters change
   useEffect(() => {
     handleSearch();
   }, [searchTerm, taskFilter, dataTypeFilter, handleSearch]);
 
   return (
     <div className="models-page">
-      {/* Search Bar under Navbar */}
       <div className="search-bar">
         <input
           type="text"
@@ -46,9 +43,7 @@ const Models = () => {
         />
         <button onClick={handleSearch}>Search</button>
       </div>
-
       <div className="models-container">
-        {/* Sidebar for Filter Options */}
         <aside className="sidebar">
           <h3>Filter Models</h3>
           <label htmlFor="task-filter">Filter by Task</label>
@@ -60,7 +55,6 @@ const Models = () => {
             <option value="chatbot">Chatbot</option>
             <option value="prediction">Prediction</option>
           </select>
-
           <label htmlFor="data-type-filter">Filter by Data Type</label>
           <select id="data-type-filter" value={dataTypeFilter} onChange={(e) => setDataTypeFilter(e.target.value)}>
             <option value="">All Data Types</option>
@@ -69,8 +63,6 @@ const Models = () => {
             <option value="audio">Audio</option>
           </select>
         </aside>
-
-        {/* Model List */}
         <div className="model-list">
           {filteredModels.map((model) => (
             <a href="/model-details" key={model.id} className="model-card">
