@@ -1,0 +1,163 @@
+/* src/styles/WorkWithTeamPage.css */
+
+.work-with-team-page {
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f4f4f9;
+    padding: 2rem;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+/* Action Buttons Section */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.toggle-member-search-btn,
+.post-request-btn {
+    padding: 0.7rem 1.5rem;
+    background-color: #fa9405;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.toggle-member-search-btn:hover,
+.post-request-btn:hover {
+    background-color: #d18d2c;
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 2rem;
+}
+
+.filter-section input,
+.filter-section select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.filter-section input {
+    flex: 1;
+    text-align: center;
+}
+
+/* Listings */
+.listings {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+}
+
+/* Team Cards */
+.team-card {
+    background-color: #ffe0b2;
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, background-color 0.3s;
+    margin-bottom: 1rem;
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    background-color: #fff;
+}
+
+.team-name {
+    font-size: 1.5rem;
+    color: #fa9405;
+}
+
+.team-description {
+    font-size: 1rem;
+    color: #555;
+    margin: 0.5rem 0 1rem;
+}
+
+/* Skill Match Bar */
+.skill-match-bar {
+    background-color: #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 1rem 0;
+    height: 25px;
+}
+
+.match-fill {
+    background-color: #fa9405;
+    height: 100%;
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.3s;
+}
+
+/* Request and Connect Buttons */
+.request-btn,
+.connect-btn {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.request-btn:hover,
+.connect-btn:hover {
+    background-color: #d18d2c;
+}
+
+/* Member Cards */
+.member-card {
+    background-color: #d8f0f2;
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, background-color 0.3s;
+    margin-bottom: 1rem;
+}
+
+.member-card:hover {
+    transform: translateY(-5px);
+    background-color: #fff;
+}
+
+.member-name {
+    font-size: 1.25rem;
+    color: #2a9d8f;
+    margin-bottom: 0.5rem;
+}
