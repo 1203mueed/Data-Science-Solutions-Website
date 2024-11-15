@@ -11,7 +11,10 @@ import PapersPage from './pages/PapersPage';
 import PricingPage from './pages/PricingPage';
 import ContactPage from './pages/ContactPage';
 import DatasetPage from './pages/DatasetPage';
+import NotebookPage from './pages/NotebookPage';
 import WorkWithTeamPage from './pages/WorkWithTeamPage';
+import LearnPage from './pages/LearnPage';
+import BlogsPage from './pages/BlogsPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -28,8 +31,11 @@ function App() {
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/datasets" element={<DatasetPage />} />
+            <Route path="/notebooks" element={<NotebookPage />} />
             <Route path="/papers" element={<PapersPage />} />
             <Route path="/work-with-team" element={<WorkWithTeamPage />} />
+            <Route path="/learn" element={<LearnPage />} />
+            <Route path="/blogs" element={<BlogsPage />} />
             {/* Add other routes as needed */}
           </Routes>
         </div>

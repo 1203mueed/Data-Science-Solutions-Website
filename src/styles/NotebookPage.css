@@ -1,0 +1,158 @@
+/* Notebook Page Styling */
+.notebook-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f9f9f9;
+    padding: 2rem;
+  }
+  
+  /* Search Bar */
+  .search-bar {
+    display: flex;
+    width: 60%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+    gap: 1rem;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 0.5rem;
+  }
+  
+  .search-bar input {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+  
+  .search-bar button {
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  .search-bar button:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  /* Notebook Actions */
+  .notebook-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .create-notebook-btn,
+  .upload-notebook-btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .create-notebook-btn:hover,
+  .upload-notebook-btn:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  /* Notebooks Container */
+  .notebooks-container {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start; /* Align items left */
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 250px;
+    background-color: #f7f7f7;
+    padding: 1.5rem;
+    margin-right: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    align-self: flex-start; /* Ensures it only wraps content */
+  }
+  
+  .sidebar h3 {
+    color: var(--primary-color);
+  }
+  
+  .sidebar label,
+  .sidebar select {
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .sidebar select {
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .apply-filters-btn {
+    margin-top: 1.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .apply-filters-btn:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  /* Notebook List */
+  .notebook-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+  }
+  
+  /* Notebook Card */
+  .notebook-card {
+    background-color: #ffe0b2;
+    padding: 1.2rem;
+    border-radius: 8px;
+    text-align: left;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, background-color 0.3s;
+  }
+  
+  .notebook-card:hover {
+    transform: translateY(-5px);
+    background-color: #fff;
+  }
+  
+  .notebook-card h3 {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+  }
+  
+  .notebook-card p {
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+  }
+  

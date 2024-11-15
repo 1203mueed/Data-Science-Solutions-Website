@@ -1,0 +1,83 @@
+/* Learn Page Styling */
+.learn-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background-color: #f9f9f9;
+  }
+  
+  /* Search Bar */
+  .search-bar {
+    display: flex;
+    justify-content: center;
+    width: 60%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-bar input {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+  
+  .search-bar button {
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  .search-bar button:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  /* Courses Container */
+  .learn-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  /* Course Card */
+  .course-card {
+    background-color: #ffe0b2;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: left;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, background-color 0.3s;
+  }
+  
+  .course-card:hover {
+    transform: translateY(-5px);
+    background-color: #fff;
+  }
+  
+  .course-card h3 {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+  }
+  
+  .course-card p {
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+  }
+  
