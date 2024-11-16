@@ -1,0 +1,91 @@
+/* SignUpPage.css */
+.signup-page {
+    max-width: 400px;
+    margin: 3rem auto;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, #ffffff, #f7f7f7);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.signup-page h1 {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.signup-page form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.signup-page input {
+    width: 100%;
+    max-width: 320px;
+    padding: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    color: #333;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.signup-page input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 6px var(--primary-color);
+}
+
+.signup-page button {
+    padding: 0.9rem 2.5rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+}
+
+.signup-page button:hover {
+    background-color: #d18d2c;
+    transform: translateY(-3px);
+}
+
+.signup-page .link-btn {
+    background: none;
+    color: var(--primary-color);
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.3s ease-in-out;
+}
+
+.signup-page .link-btn:hover {
+    color: #d18d2c;
+}
+
+.signup-page .error {
+    color: #d9534f;
+    font-size: 0.95rem;
+    margin-top: -1rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

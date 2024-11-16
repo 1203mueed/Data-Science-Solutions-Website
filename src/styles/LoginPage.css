@@ -1,0 +1,75 @@
+/* LoginPage.css */
+.login-page {
+    max-width: 400px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background: linear-gradient(135deg, #ffffff, #f9f9f9);
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.login-page h1 {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.login-page form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.login-page input {
+    width: 100%;
+    max-width: 320px;
+    padding: 0.75rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    color: #333;
+    background-color: #f9f9f9;
+}
+
+.login-page input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 4px var(--primary-color);
+}
+
+.login-page button {
+    padding: 0.7rem 2rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.login-page button:hover {
+    background-color: #d18d2c;
+}
+
+.login-page .link-btn {
+    background: none;
+    color: var(--primary-color);
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 1rem;
+}
+
+.login-page .link-btn:hover {
+    color: #d18d2c;
+}
+
+.login-page .error {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: -1rem;
+}

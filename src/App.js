@@ -16,6 +16,8 @@ import WorkWithTeamPage from './pages/WorkWithTeamPage';
 import LearnPage from './pages/LearnPage';
 import BlogsPage from './pages/BlogsPage';
 import Footer from './components/Footer';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 
 function App() {
   return (
@@ -36,6 +38,8 @@ function App() {
             <Route path="/work-with-team" element={<WorkWithTeamPage />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/blogs" element={<BlogsPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
             {/* Add other routes as needed */}
           </Routes>
         </div>
