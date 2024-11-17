@@ -1,0 +1,55 @@
+/* src/styles/RequestDatasetPage.css */
+.request-dataset-page {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .request-dataset-page h1 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+  }
+  
+  .request-dataset-page form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .request-dataset-page form input,
+  .request-dataset-page form select,
+  .request-dataset-page form textarea,
+  .request-dataset-page form button {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .request-dataset-page form textarea {
+    resize: none;
+  }
+  
+  .request-dataset-page form button {
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+  }
+  
+  .request-dataset-page form button:hover {
+    background-color: #d18d2c;
+  }
+/* RequestDatasetPage.css */
+.success-message {
+    color: green;
+    margin-top: 1rem;
+  }
+  
+  .error-message {
+    color: red;
+    margin-top: 1rem;
+  }
+    

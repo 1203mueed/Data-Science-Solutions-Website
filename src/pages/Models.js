@@ -1,6 +1,5 @@
 // src/pages/Models.js
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import Navbar from '../components/Navbar';
 import '../styles/Models.css';
 
 const Models = () => {
@@ -36,7 +35,6 @@ const Models = () => {
 
   return (
     <div className="models-page">
-      <Navbar />
       <div className="search-bar">
         <input
           type="text"

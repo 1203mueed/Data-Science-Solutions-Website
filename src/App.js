@@ -1,6 +1,6 @@
 // src/App.js
 import './styles/App.css';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Models from './pages/Models';
@@ -14,16 +14,29 @@ import DatasetPage from './pages/DatasetPage';
 import NotebookPage from './pages/NotebookPage';
 import WorkWithTeamPage from './pages/WorkWithTeamPage';
 import LearnPage from './pages/LearnPage';
-import BlogsPage from './pages/BlogsPage';
-import Footer from './components/Footer';
 import LoginPage from './pages/LoginPage';
+import BlogsPage from './pages/BlogsPage';
 import SignupPage from './pages/SignupPage';
+import UploadDatasetPage from './pages/UploadDatasetPage';
+import RequestDatasetPage from './pages/RequestDatasetPage';
+import Footer from './components/Footer';
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  // Load user from localStorage
+  useEffect(() => {
+    const savedUser = JSON.parse(localStorage.getItem('user'));
+    if (savedUser) {
+      setUser(savedUser);
+    }
+  }, []);
+
   return (
     <Router>
       <div id="root">
-        <Navbar />
+        {/* Pass the user and setUser as props to Navbar */}
+        <Navbar user={user} setUser={setUser} />
         <div className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -32,15 +45,16 @@ function App() {
             <Route path="/competitions" element={<CompetitionPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/datasets" element={<DatasetPage />} />
+            <Route path="/datasets" element={<DatasetPage user={user} />} />
+            <Route path="/upload-dataset" element={<UploadDatasetPage user={user} />} />
+            <Route path="/request-dataset" element={<RequestDatasetPage user={user} />} />
             <Route path="/notebooks" element={<NotebookPage />} />
             <Route path="/papers" element={<PapersPage />} />
             <Route path="/work-with-team" element={<WorkWithTeamPage />} />
             <Route path="/learn" element={<LearnPage />} />
-            <Route path="/blogs" element={<BlogsPage />} />
-            <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            {/* Add other routes as needed */}
+            <Route path="/login" element={<LoginPage setUser={setUser} />} />
+            <Route path="/blogs" element={<BlogsPage />} />
           </Routes>
         </div>
         <Footer />

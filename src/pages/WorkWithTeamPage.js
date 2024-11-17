@@ -1,6 +1,5 @@
 // src/pages/WorkWithTeamPage.js
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
 import '../styles/WorkWithTeamPage.css';
 
 const WorkWithTeamPage = () => {
@@ -22,7 +21,6 @@ const WorkWithTeamPage = () => {
 
   return (
     <div className="work-with-team-page">
-      <Navbar />
       <h1 className="page-title">Work With a Team</h1>
       
       <div className="action-buttons">

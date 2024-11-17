@@ -1,6 +1,5 @@
 // src/pages/CompetitionPage.js
 import React from 'react';
-import Navbar from '../components/Navbar';
 import '../styles/CompetitionPage.css';
 
 const CompetitionPage = () => {
@@ -57,7 +56,6 @@ const CompetitionPage = () => {
 
   return (
     <div className="competition-page">
-      <Navbar />
       <main className="competition-content">
         <h1 className="competition-title">Competitions</h1>
         <button className="host-competition-btn">Host a Competition</button>

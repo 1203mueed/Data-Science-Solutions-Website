@@ -1,6 +1,5 @@
 // src/pages/PricingPage.js
 import React from 'react';
-import Navbar from '../components/Navbar';
 import '../styles/PricingPage.css';
 
 const PricingPage = () => {
@@ -44,7 +43,6 @@ const PricingPage = () => {
 
   return (
     <div className="pricing-page">
-      <Navbar />
       <main className="pricing-content">
         <h1 className="pricing-title">Our Pricing Plans</h1>
         <div className="pricing-cards">

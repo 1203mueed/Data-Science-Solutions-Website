@@ -1,13 +1,11 @@
 // src/pages/Home.js
 import React from 'react';
-import Navbar from '../components/Navbar';
 import Slideshow from '../components/Slideshow';
 import '../styles/Home.css';
 
 const Home = () => {
   return (
     <div className="home">
-      <Navbar />
       
       <video autoPlay muted loop className="background-video">
         <source src="/img/backgroundvideo6.mp4" type="video/mp4" />

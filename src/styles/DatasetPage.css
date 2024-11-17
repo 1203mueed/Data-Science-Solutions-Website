@@ -1,119 +1,93 @@
-/* src/styles/DatasetPage.css */
-
 .dataset-page {
-    background-color: #f4f4f9;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     padding: 2rem;
-}
-
-/* Title */
-.dataset-title {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-}
-
-/* Action Buttons */
-.action-buttons {
+  }
+  
+  .dataset-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .action-buttons {
     display: flex;
-    gap: 1.5rem;
+    justify-content: center;
+    gap: 1rem;
     margin-bottom: 2rem;
-}
-
-.action-btn {
+  }
+  
+  .action-btn {
     padding: 0.75rem 1.5rem;
     background-color: var(--primary-color);
     color: #fff;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.action-btn:hover {
-    background-color: #d18d2c;
-}
-
-/* Filters Section */
-.filters-section {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    justify-content: center;
-    padding: 1rem;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.filters-section h2 {
-    width: 100%;
-    text-align: center;
-    font-size: 1.5rem;
-    color: var(--primary-color);
-}
-
-.filters-section select {
-    padding: 0.5rem;
     border-radius: 5px;
-    border: 1px solid #ccc;
     font-size: 1rem;
-    width: 160px; /* Increased width for a balanced look */
-}
-
-.filters-section select[name="priceRange"] {
-    width: 180px; /* Slightly larger for All Price Range */
-}
-
-/* Dataset List */
-.dataset-list {
-    width: 100%;
-    max-width: 1000px;
-    margin-top: 1rem;
-}
-
-.dataset-list h2 {
-    font-size: 1.8rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .action-btn:hover {
+    background-color: #ff8c00;
+    color: #000;
+  }
+  
+  .filters-section {
+    margin-bottom: 2rem;
     text-align: center;
-}
-
-.dataset-card {
-    background-color: #ffe0b2;
+  }
+  
+  .filters-section select {
+    margin: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .dataset-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .dataset-card {
+    width: 90%;
+    max-width: 600px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 1.5rem;
-    margin: 1rem 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.dataset-card:hover {
-    transform: translateY(-5px);
-    background-color: #ffffff;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
-
-.dataset-card h3 {
-    color: #fa9405;
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.dataset-card p {
+    padding: 1rem;
     margin: 0.5rem 0;
-    font-size: 1rem;
-}
-
-/* Improved Layout for Larger Screens */
-@media (min-width: 768px) {
-    .filters-section select {
-        width: 170px; /* More spacious for larger screens */
-    }
-}
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, background-color 0.3s, color 0.3s;
+  }
+  
+  .dataset-card:hover {
+    transform: translateY(-5px);
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+  
+  .page-btn {
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #ddd;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .page-btn.active {
+    background-color: var(--primary-color);
+    color: #fff;
+  }
+  
+  .page-btn:hover {
+    background-color: #ff8c00;
+    color: #000;
+  }
+  

@@ -1,8 +1,9 @@
+// src/pages/LoginPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/LoginPage.css';
 
-const LoginPage = () => {
+const LoginPage = ({ setUser }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,8 +22,9 @@ const LoginPage = () => {
 
       const data = await response.json();
       if (response.ok) {
-        localStorage.setItem('user', JSON.stringify(data));
-        navigate('/');
+        localStorage.setItem('user', JSON.stringify(data)); // Save user info to localStorage
+        setUser(data); // Update user state in App.js
+        navigate('/'); // Redirect to home page
       } else {
         setError(data.error || 'Invalid login credentials');
       }
