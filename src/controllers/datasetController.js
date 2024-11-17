@@ -17,7 +17,7 @@ const addDataset = async (req, res) => {
       category,
       dataType,
       price,
-      status: status || 'Uploaded', // Default status if not provided
+      status: status || 'uploaded', // Default status if not provided
       uploader: uploader || null, // Default uploader if not provided
     });
 
@@ -25,7 +25,7 @@ const addDataset = async (req, res) => {
     const savedDataset = await dataset.save();
     res.status(201).json({ message: 'Dataset added successfully', dataset: savedDataset });
   } catch (error) {
-    console.error('Error adding dataset:', error);
+    console.error('Error adding dataset:', error.message);
     res.status(500).json({ error: 'Failed to add dataset' });
   }
 };
@@ -35,20 +35,27 @@ const getDatasets = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 
+    // Validate page and limit
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || isNaN(parsedLimit) || parsedPage <= 0 || parsedLimit <= 0) {
+      return res.status(400).json({ error: 'Page and limit must be positive integers' });
+    }
+
     const datasets = await Dataset.find()
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+      .skip((parsedPage - 1) * parsedLimit)
+      .limit(parsedLimit);
 
     const totalDatasets = await Dataset.countDocuments();
 
     res.status(200).json({
       datasets,
       totalDatasets,
-      totalPages: Math.ceil(totalDatasets / limit),
-      currentPage: Number(page),
+      totalPages: Math.ceil(totalDatasets / parsedLimit),
+      currentPage: parsedPage,
     });
   } catch (error) {
-    console.error('Error fetching datasets:', error);
+    console.error('Error fetching datasets:', error.message);
     res.status(500).json({ error: 'Failed to fetch datasets' });
   }
 };
@@ -57,6 +64,8 @@ const getDatasets = async (req, res) => {
 const getDatasetById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Validate ObjectId
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ error: 'Invalid dataset ID' });
     }
@@ -68,7 +77,7 @@ const getDatasetById = async (req, res) => {
 
     res.status(200).json(dataset);
   } catch (error) {
-    console.error('Error fetching dataset:', error);
+    console.error('Error fetching dataset:', error.message);
     res.status(500).json({ error: 'Failed to fetch dataset' });
   }
 };
@@ -79,6 +88,7 @@ const updateDataset = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
+    // Validate ObjectId
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ error: 'Invalid dataset ID' });
     }
@@ -90,7 +100,7 @@ const updateDataset = async (req, res) => {
 
     res.status(200).json({ message: 'Dataset updated successfully', dataset: updatedDataset });
   } catch (error) {
-    console.error('Error updating dataset:', error);
+    console.error('Error updating dataset:', error.message);
     res.status(500).json({ error: 'Failed to update dataset' });
   }
 };
@@ -100,6 +110,7 @@ const deleteDataset = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate ObjectId
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ error: 'Invalid dataset ID' });
     }
@@ -111,7 +122,7 @@ const deleteDataset = async (req, res) => {
 
     res.status(200).json({ message: 'Dataset deleted successfully' });
   } catch (error) {
-    console.error('Error deleting dataset:', error);
+    console.error('Error deleting dataset:', error.message);
     res.status(500).json({ error: 'Failed to delete dataset' });
   }
 };

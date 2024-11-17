@@ -3,6 +3,99 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/DatasetPage.css';
 
+const dummyDatasets = [
+  {
+    _id: '1',
+    name: 'Global Temperature Data',
+    details: 'Detailed climate data from 1900 to 2023',
+    category: 'Environment',
+    dataType: 'Tabular',
+    price: 0,
+    status: 'uploaded',
+  },
+  {
+    _id: '2',
+    name: 'Lung Cancer Research Dataset',
+    details: 'Images and tabular data for lung cancer prediction',
+    category: 'Medical',
+    dataType: 'Image',
+    price: 100,
+    status: 'uploaded',
+  },
+  {
+    _id: '3',
+    name: 'Urban Traffic Patterns',
+    details: 'Real-time traffic data from metropolitan cities',
+    category: 'Geospatial',
+    dataType: 'Tabular',
+    price: 50,
+    status: 'requested',
+  },
+  {
+    _id: '4',
+    name: 'COVID-19 Cases Worldwide',
+    details: 'Case-by-case analysis of COVID-19 from 2020-2022',
+    category: 'Health',
+    dataType: 'Tabular',
+    price: 0,
+    status: 'uploaded',
+  },
+  {
+    _id: '5',
+    name: 'Air Quality Index Data',
+    details: 'Monthly air quality data across 50 countries',
+    category: 'Environment',
+    dataType: 'Tabular',
+    price: 75,
+    status: 'requested',
+  },
+  {
+    _id: '6',
+    name: 'Diabetes Study Dataset',
+    details: 'Detailed patient data for diabetes research',
+    category: 'Medical',
+    dataType: 'Tabular',
+    price: 90,
+    status: 'uploaded',
+  },
+  {
+    _id: '7',
+    name: 'Forest Fire Data',
+    details: 'Comprehensive data on forest fires across regions',
+    category: 'Environment',
+    dataType: 'Image',
+    price: 50,
+    status: 'uploaded',
+  },
+  {
+    _id: '8',
+    name: 'Heart Disease Analysis',
+    details: 'Data on heart disease prediction models',
+    category: 'Health',
+    dataType: 'Tabular',
+    price: 0,
+    status: 'uploaded',
+  },
+  {
+    _id: '9',
+    name: 'Crop Yield Dataset',
+    details: 'Agricultural data for predicting crop yields',
+    category: 'Environment',
+    dataType: 'Tabular',
+    price: 100,
+    status: 'uploaded',
+  },
+  {
+    _id: '10',
+    name: 'Solar Energy Utilization',
+    details: 'Data on solar energy installations worldwide',
+    category: 'Environment',
+    dataType: 'Image',
+    price: 50,
+    status: 'requested',
+  },
+];
+
 const DatasetPage = ({ user }) => {
   const navigate = useNavigate();
   const [datasets, setDatasets] = useState([]);
@@ -15,60 +108,11 @@ const DatasetPage = ({ user }) => {
     const fetchDatasets = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/datasets');
-        const data = await response.json();
-
-        // Add meaningful datasets for demonstration
-        const meaningfulDatasets = [
-          {
-            _id: '1',
-            name: 'Global Temperature Data',
-            details: 'Detailed climate data from 1900 to 2023',
-            category: 'Environment',
-            dataType: 'Tabular',
-            price: 0,
-            status: 'uploaded',
-          },
-          {
-            _id: '2',
-            name: 'Lung Cancer Research Dataset',
-            details: 'Images and tabular data for lung cancer prediction',
-            category: 'Medical',
-            dataType: 'Image',
-            price: 100,
-            status: 'uploaded',
-          },
-          {
-            _id: '3',
-            name: 'Urban Traffic Patterns',
-            details: 'Real-time traffic data from metropolitan cities',
-            category: 'Geospatial',
-            dataType: 'Tabular',
-            price: 50,
-            status: 'requested',
-          },
-          {
-            _id: '4',
-            name: 'COVID-19 Cases Worldwide',
-            details: 'Case-by-case analysis of COVID-19 from 2020-2022',
-            category: 'Health',
-            dataType: 'Tabular',
-            price: 0,
-            status: 'uploaded',
-          },
-          {
-            _id: '5',
-            name: 'Air Quality Index Data',
-            details: 'Monthly air quality data across 50 countries',
-            category: 'Environment',
-            dataType: 'Tabular',
-            price: 75,
-            status: 'requested',
-          },
-        ];
-
-        setDatasets([...data, ...meaningfulDatasets]);
+        const backendDatasets = await response.json();
+        setDatasets([...backendDatasets.datasets, ...dummyDatasets]);
       } catch (err) {
         console.error('Failed to fetch datasets:', err);
+        setDatasets([...dummyDatasets]); // Fallback to dummy data in case of an error
       }
     };
 
