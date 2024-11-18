@@ -307,6 +307,125 @@ const deleteDatasetFolder = async (req, res) => {
 };
 
 
+// New controller function to count files in a dataset folder
+const countFilesInFolder = async (req, res) => {
+  try {
+    const { datasetFolder } = req.body;
+
+    if (!datasetFolder) {
+      return res.status(400).json({ error: 'Dataset folder is required' });
+    }
+
+    const folderPath = path.join(__dirname, '../assets/DatasetUploads', datasetFolder);
+
+    // Check if the folder exists
+    try {
+      const stats = await fs.stat(folderPath);
+      if (!stats.isDirectory()) {
+        return res.status(400).json({ error: 'Provided path is not a directory' });
+      }
+    } catch (err) {
+      return res.status(404).json({ error: 'Dataset folder not found' });
+    }
+
+    // Function to recursively count files
+    const countFiles = async (dir) => {
+      let count = 0;
+      const files = await fs.readdir(dir, { withFileTypes: true });
+      for (const file of files) {
+        const res = path.resolve(dir, file.name);
+        if (file.isDirectory()) {
+          count += await countFiles(res);
+        } else {
+          count += 1;
+        }
+      }
+      return count;
+    };
+
+    const fileCount = await countFiles(folderPath);
+
+    res.status(200).json({ fileCount });
+  } catch (err) {
+    console.error('Error counting files:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getTrainerProjectDetails = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { userId } = req.query;
+
+    if (!projectId || !userId) {
+      return res.status(400).json({ error: 'Project ID and User ID are required' });
+    }
+
+    const training = await FederatedTraining.findById(projectId)
+      .populate('modelTrainer')
+      .populate('dataProviders.user');
+
+    if (!training) {
+      return res.status(404).json({ error: 'Federated training project not found' });
+    }
+
+    // Verify that the requesting user is the model trainer
+    if (training.modelTrainer._id.toString() !== userId) {
+      return res.status(403).json({ error: 'You are not authorized to view this project' });
+    }
+
+    // Function to recursively count files in a directory
+    const countFiles = async (dir) => {
+      let count = 0;
+      try {
+        const files = await fs.readdir(dir, { withFileTypes: true });
+        for (const file of files) {
+          const res = path.resolve(dir, file.name);
+          if (file.isDirectory()) {
+            count += await countFiles(res);
+          } else {
+            count += 1;
+          }
+        }
+      } catch (err) {
+        console.error(`Error reading directory ${dir}:`, err.message);
+      }
+      return count;
+    };
+
+    // Prepare data providers' info
+    const dataProvidersInfo = await Promise.all(
+      training.dataProviders.map(async (provider) => {
+        let fileCount = 0;
+        if (provider.datasetFolder) {
+          const folderPath = path.join(__dirname, '../assets/DatasetUploads', provider.datasetFolder);
+          fileCount = await countFiles(folderPath);
+        }
+
+        return {
+          name: provider.user.name,
+          email: provider.user.email,
+          status: provider.status,
+          filesUploaded: provider.datasetFolder ? fileCount : 0,
+        };
+      })
+    );
+
+    // Prepare the response object
+    const trainerProjectDetails = {
+      projectName: training.projectName,
+      description: training.description,
+      dataProviders: dataProvidersInfo,
+      createdAt: training.createdAt,
+    };
+
+    res.status(200).json({ trainerProjectDetails });
+  } catch (err) {
+    console.error('Error fetching trainer project details:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 module.exports = {
   getFederatedTrainings,
@@ -316,4 +435,6 @@ module.exports = {
   uploadDatasetFolder,
   getProjectDetails,
   deleteDatasetFolder,
+  countFilesInFolder,
+  getTrainerProjectDetails,
 };

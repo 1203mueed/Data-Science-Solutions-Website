@@ -1,0 +1,124 @@
+/* src/styles/ModelTrainerDashboard.css */
+
+/* Base styling for the dashboard */
+.model-trainer-dashboard {
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .model-trainer-dashboard h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
+  .model-trainer-dashboard h2 {
+    font-size: 1.75rem;
+    color: #34495e;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .model-trainer-dashboard p {
+    font-size: 1rem;
+    color: #7f8c8d;
+    line-height: 1.6;
+    text-align: center;
+  }
+  
+  /* Section for project details */
+  .project-details {
+    margin-top: 30px;
+  }
+  
+  .project-details h3 {
+    font-size: 1.5rem;
+    color: #2980b9;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 5px;
+  }
+  
+  /* List of providers */
+  .providers-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .provider-item {
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .provider-item:hover {
+    background-color: #d0d7de;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .provider-item p {
+    margin: 8px 0;
+    font-size: 1rem;
+    color: #2c3e50;
+  }
+  
+  .provider-item strong {
+    color: #34495e;
+  }
+  
+  /* Loader styling */
+  .loader {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 30px auto;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Error message styling */
+  .error {
+    color: #e74c3c;
+    font-weight: bold;
+    text-align: center;
+    margin: 30px 0;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .model-trainer-dashboard {
+      padding: 15px;
+    }
+  
+    .model-trainer-dashboard h1 {
+      font-size: 2rem;
+    }
+  
+    .model-trainer-dashboard h2 {
+      font-size: 1.5rem;
+    }
+  
+    .provider-item p {
+      font-size: 0.9rem;
+    }
+  }
+  

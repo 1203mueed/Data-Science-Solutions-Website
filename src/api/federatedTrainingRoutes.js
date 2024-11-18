@@ -10,6 +10,8 @@ const {
   uploadDatasetFolder,
   getProjectDetails,
   deleteDatasetFolder,
+  countFilesInFolder,
+  getTrainerProjectDetails,
 } = require('../controllers/federatedTrainingController');
 
 const storage = multer.diskStorage({
@@ -33,5 +35,6 @@ router.post('/respond', respondToInvitation);
 router.post('/upload', upload.array('datasetFolder'), uploadDatasetFolder);
 router.get('/projects/:projectId/details', getProjectDetails);
 router.delete('/upload/:projectId/:datasetFolder', deleteDatasetFolder);
-
+router.post('/count-files', countFilesInFolder);
+router.get('/projects/:projectId/trainer-details', getTrainerProjectDetails);
 module.exports = router;
