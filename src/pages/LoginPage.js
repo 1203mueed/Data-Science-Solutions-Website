@@ -1,18 +1,16 @@
 // src/pages/LoginPage.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../styles/LoginPage.css';
 
 const LoginPage = ({ setUser }) => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
-
     try {
       const response = await fetch('http://localhost:5000/api/users/login', {
         method: 'POST',
@@ -21,22 +19,26 @@ const LoginPage = ({ setUser }) => {
       });
 
       const data = await response.json();
+
       if (response.ok) {
-        localStorage.setItem('user', JSON.stringify(data)); // Save user info to localStorage
-        setUser(data); // Update user state in App.js
-        navigate('/'); // Redirect to home page
+        // Save user data including userId to localStorage
+        localStorage.setItem('user', JSON.stringify(data));
+        setUser(data);
+        navigate('/'); // Redirect to home page after login
       } else {
-        setError(data.error || 'Invalid login credentials');
+        setError(data.error || 'Something went wrong!');
       }
     } catch (err) {
-      setError('An error occurred during login');
+      console.error('Login error:', err);
+      setError('Failed to connect to the server.');
     }
   };
 
   return (
     <div className="login-page">
-      <h1>Login</h1>
-      <form onSubmit={handleLogin}>
+      <form className="login-form" onSubmit={handleLogin}>
+        <h2>Log In</h2>
+        {error && <p className="error-message">{error}</p>}
         <input
           type="email"
           placeholder="Email"
@@ -51,15 +53,14 @@ const LoginPage = ({ setUser }) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Login</button>
-        {error && <p className="error">{error}</p>}
+        <button type="submit">Log In</button>
+        <p>
+          Don't have an account?{' '}
+          <Link to="/signup" className="link-btn">
+            Sign Up
+          </Link>
+        </p>
       </form>
-      <p>
-        Don't have an account?{' '}
-        <button className="link-btn" onClick={() => navigate('/signup')}>
-          Sign Up
-        </button>
-      </p>
     </div>
   );
 };

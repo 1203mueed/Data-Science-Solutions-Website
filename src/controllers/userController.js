@@ -1,5 +1,6 @@
 const User = require('../db/models/userModel');
 const path = require('path');
+const bcrypt = require('bcrypt'); // Ensure bcrypt is required for password hashing
 
 // Signup controller
 const createUser = async (req, res) => {
@@ -17,10 +18,13 @@ const createUser = async (req, res) => {
       return res.status(400).json({ error: 'Email already in use' });
     }
 
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create and save the new user
     const user = new User({
       email,
-      password,
+      password: hashedPassword,
       image,
     });
 
@@ -44,12 +48,14 @@ const loginUser = async (req, res) => {
     }
 
     // Check if the password matches
-    if (user.password !== password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Respond with user info
+    // Respond with user info, including userId
     res.status(200).json({
+      userId: user._id, // Include userId
       email: user.email,
       image: user.image,
       plan: user.plan,

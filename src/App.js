@@ -20,34 +20,36 @@ import SignupPage from './pages/SignupPage';
 import UploadDatasetPage from './pages/UploadDatasetPage';
 import RequestDatasetPage from './pages/RequestDatasetPage';
 import Footer from './components/Footer';
+import FederatedTrainingPage from './pages/FederatedTrainingPage';
+import FederatedTrainingStartPage from './pages/FederatedTrainingStartPage';
+import FederatedTrainingViewPage from './pages/FederatedTrainingViewPage';
+import ProtectedRoute from './components/ProtectedRoute'; // Ensure this component exists and is correctly implemented
 
 function App() {
   const [user, setUser] = useState(null);
 
-  // Load user from localStorage
   useEffect(() => {
+    // Retrieve user data from localStorage on initial render
     const savedUser = JSON.parse(localStorage.getItem('user'));
-    if (savedUser) {
-      setUser(savedUser);
+    if (savedUser && savedUser._id) { // Assuming _id is used
+      setUser({ ...savedUser, userId: savedUser._id }); // Map _id to userId
     }
   }, []);
 
   return (
     <Router>
       <div id="root">
-        {/* Pass the user and setUser as props to Navbar */}
         <Navbar user={user} setUser={setUser} />
         <div className="main-content">
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/models" element={<Models />} />
             <Route path="/model-details" element={<ModelDetailsPage />} />
             <Route path="/competitions" element={<CompetitionPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/datasets" element={<DatasetPage user={user} />} />
-            <Route path="/upload-dataset" element={<UploadDatasetPage user={user} />} />
-            <Route path="/request-dataset" element={<RequestDatasetPage user={user} />} />
+            <Route path="/datasets" element={<DatasetPage />} />
             <Route path="/notebooks" element={<NotebookPage />} />
             <Route path="/papers" element={<PapersPage />} />
             <Route path="/work-with-team" element={<WorkWithTeamPage />} />
@@ -55,6 +57,41 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage setUser={setUser} />} />
             <Route path="/blogs" element={<BlogsPage />} />
+            <Route path="/federated-training" element={<FederatedTrainingPage />} />
+
+            {/* Protected Routes */}
+            <Route
+              path="/federated-training/view"
+              element={
+                <ProtectedRoute user={user}>
+                  <FederatedTrainingViewPage user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/federated-training/start"
+              element={
+                <ProtectedRoute user={user}>
+                  <FederatedTrainingStartPage user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/upload-dataset"
+              element={
+                <ProtectedRoute user={user}>
+                  <UploadDatasetPage user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/request-dataset"
+              element={
+                <ProtectedRoute user={user}>
+                  <RequestDatasetPage user={user} />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
         <Footer />

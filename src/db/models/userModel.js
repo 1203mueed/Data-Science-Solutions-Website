@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema({
   notebooks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notebook' }],
   datasets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Dataset' }],
   papers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Paper' }],
+  federatedTrainingsAsTrainer: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'FederatedTraining' },
+  ], // Projects where the user is a model trainer
+  federatedTrainingsAsProvider: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'FederatedTraining' },
+  ], // Projects where the user is a data provider
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

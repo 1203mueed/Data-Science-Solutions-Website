@@ -1,19 +1,27 @@
 const jwt = require('jsonwebtoken');
+const User = require('../db/models/userModel');
 
-// Middleware to authenticate users
-function authMiddleware(req, res, next) {
+const authenticate = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
+
   if (!token) {
-    return res.status(401).send({ error: 'Unauthorized' });
+    return res.status(401).json({ error: 'Unauthorized access' });
   }
 
   try {
-    const decoded = jwt.verify(token, 'your-secret-key');
-    req.user = decoded;
-    next();
-  } catch (error) {
-    res.status(403).send({ error: 'Forbidden' });
-  }
-}
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
 
-module.exports = authMiddleware;
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized access' });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    console.error('Authentication error:', err.message);
+    res.status(401).json({ error: 'Unauthorized access' });
+  }
+};
+
+module.exports = { authenticate };
