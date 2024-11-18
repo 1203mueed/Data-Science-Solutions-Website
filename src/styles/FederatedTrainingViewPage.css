@@ -1,7 +1,7 @@
 /* src/styles/FederatedTrainingViewPage.css */
 
 .federated-training-view-page {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 60px auto;
   padding: 30px;
   background-color: #ffffff;
@@ -17,16 +17,25 @@
   font-size: 2.5rem;
 }
 
-section {
+.trainer-section,
+.provider-section,
+.requests-section {
   margin-bottom: 50px;
 }
 
-section h2 {
+.trainer-section h2,
+.provider-section h2,
+.requests-section h2 {
   border-bottom: 3px solid #4CAF50;
   padding-bottom: 10px;
   color: #4CAF50;
   margin-bottom: 25px;
   font-size: 2rem;
+}
+
+.training-card-link {
+  text-decoration: none;
+  color: inherit;
 }
 
 .training-card {
@@ -36,6 +45,13 @@ section h2 {
   padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.training-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 }
 
 .training-card h3 {
@@ -111,4 +127,75 @@ section h2 {
   font-weight: bold;
   text-align: center;
   margin-top: 20px;
+}
+
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 2s linear infinite;
+  margin: 0 auto 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Styling for Requests Section */
+.requests-section .request-card {
+  background-color: #f1f1f1;
+  border-left: 5px solid #FFA500;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.requests-section .request-card p {
+  margin: 0 0 10px 0;
+  color: #333333;
+}
+
+.training-card-link:hover .training-card {
+  background-color: #f1f1f1;
+}
+
+/* Prevent text selection on links */
+.training-card-link {
+  user-select: none;
+}
+
+/* Ensure buttons do not trigger link navigation */
+.training-card .action-buttons button {
+  user-select: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .federated-training-view-page {
+    padding: 20px;
+  }
+
+  .training-card {
+    padding: 15px;
+  }
+
+  .training-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .trainer-section h2,
+  .provider-section h2,
+  .requests-section h2 {
+    font-size: 1.8rem;
+  }
+
+  .accept-btn,
+  .reject-btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
 }

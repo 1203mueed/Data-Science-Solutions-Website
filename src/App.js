@@ -23,6 +23,8 @@ import Footer from './components/Footer';
 import FederatedTrainingPage from './pages/FederatedTrainingPage';
 import FederatedTrainingStartPage from './pages/FederatedTrainingStartPage';
 import FederatedTrainingViewPage from './pages/FederatedTrainingViewPage';
+import DataProviderDashboard from './pages/DataProviderDashboard'; // Ensure this component exists
+import ModelTrainerDashboard from './pages/ModelTrainerDashboard'; // Ensure this component exists
 import ProtectedRoute from './components/ProtectedRoute'; // Ensure this component exists and is correctly implemented
 
 function App() {
@@ -89,6 +91,26 @@ function App() {
               element={
                 <ProtectedRoute user={user}>
                   <RequestDatasetPage user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Model Trainer Dashboard */}
+            {/* <Route
+              path="/model-trainer/dashboard/:projectId"
+              element={
+                <ProtectedRoute user={user}>
+                  <ModelTrainerDashboard user={user} />
+                </ProtectedRoute>
+              }
+            /> */}
+
+            {/* Data Provider Dashboard */}
+            <Route
+              path="/data-provider/dashboard/:projectId"
+              element={
+                <ProtectedRoute user={user}>
+                  <DataProviderDashboard user={user} />
                 </ProtectedRoute>
               }
             />

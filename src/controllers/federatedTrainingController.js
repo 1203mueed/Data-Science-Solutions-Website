@@ -1,6 +1,8 @@
 // src/controllers/federatedTrainingController.js
 const FederatedTraining = require('../db/models/federatedTrainingModel');
 const User = require('../db/models/userModel');
+const path = require('path');
+const fs = require('fs').promises;
 
 // Get federated trainings for a user
 const getFederatedTrainings = async (req, res) => {
@@ -172,42 +174,139 @@ const respondToInvitation = async (req, res) => {
   }
 };
 
-// Upload dataset folder
+// Updated `uploadDatasetFolder` to preserve folder structure
 const uploadDatasetFolder = async (req, res) => {
   try {
     const { trainingId, userId } = req.body;
-    const datasetFolder = req.file ? req.file.path : null;
+    let relativePaths = req.body.relativePath;
 
     if (!trainingId || !userId) {
       return res.status(400).json({ error: 'Training ID and User ID are required' });
     }
 
-    if (!datasetFolder) {
-      return res.status(400).json({ error: 'Dataset folder is required' });
-    }
+    const training = await FederatedTraining.findById(trainingId).populate('dataProviders.user');
 
-    const training = await FederatedTraining.findById(trainingId);
     if (!training) {
       return res.status(404).json({ error: 'Federated training project not found' });
     }
 
-    const dataProvider = training.dataProviders.find(
-      dp => dp.user.toString() === userId && dp.status === 'accepted'
-    );
+    const provider = training.dataProviders.find(dp => dp.user._id.toString() === userId);
 
-    if (!dataProvider) {
-      return res.status(403).json({ error: 'Unauthorized to upload dataset' });
+    if (!provider) {
+      return res.status(403).json({ error: 'You are not authorized to upload datasets for this project' });
     }
 
-    dataProvider.datasetFolder = datasetFolder;
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+
+    if (!Array.isArray(relativePaths)) {
+      relativePaths = [relativePaths];
+    }
+
+    const folderName = `provider-${userId}-${Date.now()}`;
+    const baseUploadPath = path.join(__dirname, '../assets/DatasetUploads', folderName);
+
+    await fs.mkdir(baseUploadPath, { recursive: true });
+
+    for (let i = 0; i < req.files.length; i++) {
+      const file = req.files[i];
+      const relativePath = relativePaths[i] || file.originalname;
+      const targetPath = path.join(baseUploadPath, relativePath);
+
+      const targetDir = path.dirname(targetPath);
+      await fs.mkdir(targetDir, { recursive: true });
+
+      await fs.rename(file.path, targetPath);
+    }
+
+    provider.datasetFolder = folderName;
     await training.save();
 
-    res.status(200).json({ message: 'Dataset uploaded successfully', training });
+    res.status(200).json({ training });
   } catch (err) {
     console.error('Error uploading dataset folder:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
+// New controller function to get project details for Data Provider
+const getProjectDetails = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { userId } = req.query;
+
+    if (!projectId || !userId) {
+      return res.status(400).json({ error: 'Project ID and User ID are required' });
+    }
+
+    const training = await FederatedTraining.findById(projectId)
+      .populate('modelTrainer')
+      .populate('dataProviders.user');
+
+    if (!training) {
+      return res.status(404).json({ error: 'Federated training project not found' });
+    }
+
+    // Check if the user is a data provider for this project
+    const isDataProvider = training.dataProviders.some(dp => dp.user._id.toString() === userId);
+
+    if (!isDataProvider) {
+      return res.status(403).json({ error: 'You are not authorized to view this project' });
+    }
+
+    res.status(200).json({ training });
+  } catch (err) {
+    console.error('Error fetching project details:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// New controller function to delete dataset folder
+const deleteDatasetFolder = async (req, res) => {
+  try {
+    const { projectId, datasetFolder } = req.params;
+    const { userId } = req.body; // Assuming userId is sent in the body for authorization
+
+    if (!projectId || !datasetFolder || !userId) {
+      return res.status(400).json({ error: 'Project ID, Dataset Folder, and User ID are required' });
+    }
+
+    const training = await FederatedTraining.findById(projectId).populate('dataProviders.user');
+
+    if (!training) {
+      return res.status(404).json({ error: 'Federated training project not found' });
+    }
+
+    // Find the data provider
+    const provider = training.dataProviders.find(dp => dp.user._id.toString() === userId);
+
+    if (!provider) {
+      return res.status(403).json({ error: 'You are not authorized to delete datasets for this project' });
+    }
+
+    if (provider.datasetFolder !== datasetFolder) {
+      return res.status(400).json({ error: 'Dataset folder does not match' });
+    }
+
+    const folderPath = path.join(__dirname, '../assets/DatasetUploads', datasetFolder);
+
+    // Remove the directory and its contents
+    await fs.rm(folderPath, { recursive: true, force: true });
+
+    // Update the provider's datasetFolder field
+    provider.datasetFolder = null;
+    await training.save();
+
+    res.status(200).json({ message: 'Dataset deleted successfully', training });
+  } catch (err) {
+    console.error('Error deleting dataset folder:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 
 module.exports = {
   getFederatedTrainings,
@@ -215,4 +314,6 @@ module.exports = {
   inviteDataProviders,
   respondToInvitation,
   uploadDatasetFolder,
+  getProjectDetails,
+  deleteDatasetFolder,
 };
