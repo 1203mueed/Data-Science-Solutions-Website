@@ -11,6 +11,9 @@ const DataProviderDashboard = ({ user }) => {
   const [uploading, setUploading] = useState(false);
   const [fileUpload, setFileUpload] = useState(null);
   const [folderUpload, setFolderUpload] = useState([]);
+  const [datasetDescription, setDatasetDescription] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [updatedDescription, setUpdatedDescription] = useState('');
 
   useEffect(() => {
     const fetchTrainingDetails = async () => {
@@ -49,7 +52,7 @@ const DataProviderDashboard = ({ user }) => {
 
   const handleFolderChange = (e) => {
     const files = Array.from(e.target.files);
-    const filesWithRelativePaths = files.map(file => ({
+    const filesWithRelativePaths = files.map((file) => ({
       file,
       relativePath: file.webkitRelativePath || file.name,
     }));
@@ -63,11 +66,17 @@ const DataProviderDashboard = ({ user }) => {
       return;
     }
 
+    if (!datasetDescription) {
+      alert('Please provide a description of your dataset.');
+      return;
+    }
+
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append('trainingId', projectId);
       formData.append('userId', user.userId);
+      formData.append('datasetDescription', datasetDescription);
 
       if (fileUpload) {
         formData.append('datasetFolder', fileUpload);
@@ -93,6 +102,7 @@ const DataProviderDashboard = ({ user }) => {
         alert('Dataset uploaded successfully.');
         setFileUpload(null);
         setFolderUpload([]);
+        setDatasetDescription('');
         document.getElementById('file-input').value = null;
         document.getElementById('folder-input').value = null;
       } else {
@@ -134,6 +144,49 @@ const DataProviderDashboard = ({ user }) => {
     }
   };
 
+  const handleEditDescription = () => {
+    setIsEditing(true);
+    const currentProvider = training.dataProviders.find(dp => dp.user._id === user.userId);
+    setUpdatedDescription(currentProvider?.datasetDescription || '');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setUpdatedDescription('');
+  };
+
+  const handleSaveDescription = async () => {
+    const provider = training.dataProviders.find(dp => dp.user._id === user.userId);
+    if (!provider) {
+      alert('Data provider not found.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/federated-training/upload/${projectId}/${provider.datasetFolder}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.userId, datasetDescription: updatedDescription }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setTraining(data.training);
+        alert('Dataset description updated successfully.');
+        setIsEditing(false);
+        setUpdatedDescription('');
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      console.error('Error updating dataset description:', err);
+      alert('An error occurred while updating the dataset description.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="data-provider-dashboard">
@@ -150,6 +203,8 @@ const DataProviderDashboard = ({ user }) => {
       </div>
     );
   }
+
+  const provider = training.dataProviders.find(dp => dp.user._id === user.userId);
 
   return (
     <div className="data-provider-dashboard">
@@ -169,26 +224,53 @@ const DataProviderDashboard = ({ user }) => {
 
       <section className="dataset-section">
         <h3>Your Dataset</h3>
-        {training.dataProviders && training.dataProviders.length > 0 ? (
-          training.dataProviders.map((provider) => {
-            if (provider.user._id === user.userId) {
-              return provider.datasetFolder ? (
-                <div key={provider.user._id} className="dataset-info">
-                  <p>
-                    <strong>Dataset Folder:</strong> {provider.datasetFolder}
-                  </p>
-                  <button onClick={() => handleDelete(provider.datasetFolder)} className="delete-btn">
-                    Delete Dataset
-                  </button>
-                </div>
-              ) : (
-                <p key={provider.user._id}>No dataset uploaded yet.</p>
-              );
-            }
-            return null;
-          })
+        {provider ? (
+          provider.datasetFolder ? (
+            <div className="dataset-info">
+              <div>
+                <p>
+                  <strong>Dataset Folder:</strong> {provider.datasetFolder}
+                </p>
+                <p>
+                  <strong>Dataset Description:</strong>
+                </p>
+                {isEditing ? (
+                  <div className="edit-description">
+                    <textarea
+                      value={updatedDescription}
+                      onChange={(e) => setUpdatedDescription(e.target.value)}
+                      placeholder="Describe your dataset and folder structure..."
+                      required
+                    ></textarea>
+                    <div className="edit-buttons">
+                      <button onClick={handleSaveDescription} className="save-btn">
+                        Save
+                      </button>
+                      <button onClick={handleCancelEdit} className="cancel-btn">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="dataset-description">
+                      {provider.datasetDescription || 'No description provided.'}
+                    </p>
+                    <button onClick={handleEditDescription} className="edit-btn">
+                      Edit Description
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => handleDelete(provider.datasetFolder)} className="delete-btn">
+                Delete Dataset
+              </button>
+            </div>
+          ) : (
+            <p>No dataset uploaded yet.</p>
+          )
         ) : (
-          <p>No data providers found.</p>
+          <p>No data provider information available.</p>
         )}
       </section>
 
@@ -217,6 +299,16 @@ const DataProviderDashboard = ({ user }) => {
                 onChange={handleFolderChange}
               />
             </div>
+          </div>
+          <div className="description-group">
+            <label htmlFor="dataset-description">Dataset Description:</label>
+            <textarea
+              id="dataset-description"
+              value={datasetDescription}
+              onChange={(e) => setDatasetDescription(e.target.value)}
+              placeholder="Describe your dataset and folder structure..."
+              required
+            ></textarea>
           </div>
           <button type="submit" disabled={uploading} className="upload-btn">
             {uploading ? 'Uploading...' : 'Upload'}

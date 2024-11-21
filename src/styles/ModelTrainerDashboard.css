@@ -2,123 +2,273 @@
 
 /* Base styling for the dashboard */
 .model-trainer-dashboard {
-    font-family: Arial, sans-serif;
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 25px;
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 25px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Header styling */
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.dashboard-header h2 {
+  font-size: 1.75rem;
+  color: #34495e;
+  margin-bottom: 10px;
+}
+
+.dashboard-header p {
+  font-size: 1rem;
+  color: #7f8c8d;
+  line-height: 1.6;
+}
+
+/* Section headings */
+.project-details h3,
+.invite-section h3 {
+  font-size: 1.5rem;
+  color: #2980b9;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 8px;
+}
+
+/* Providers list */
+.providers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.provider-card {
+  background-color: #f9f9f9;
+  border: 1px solid #bdc3c7;
+  border-radius: 10px;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.provider-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.provider-info p {
+  margin: 8px 0;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.provider-info strong {
+  color: #34495e;
+}
+
+/* Status badges */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.status.accepted {
+  background-color: #e0f7fa;
+  color: #00796b;
+}
+
+.status.rejected {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status.invited {
+  background-color: #e8eaf6;
+  color: #3949ab;
+}
+
+/* Dataset details */
+.dataset-details {
+  margin-top: 15px;
+}
+
+.dataset-details p {
+  margin: 6px 0;
+  font-size: 0.95rem;
+  color: #2c3e50;
+}
+
+.dataset-description {
+  background-color: #f1f1f1;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-top: 5px;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  color: #555555;
+}
+
+/* Invite section */
+.invite-section {
+  margin-top: 50px;
+}
+
+.invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.invite-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.invite-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333333;
+}
+
+.invite-group input[type="text"] {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.invite-group input[type="text"]:focus {
+  border-color: #2980b9;
+  outline: none;
+}
+
+.invite-btn {
+  padding: 12px 20px;
+  background-color: #2980b9;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.invite-btn:hover {
+  background-color: #1c5980;
+}
+
+.invite-btn:disabled {
+  background-color: #a5c1d9;
+  cursor: not-allowed;
+}
+
+.invite-icon {
+  font-size: 1.2rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+.invite-error {
+  color: #e74c3c;
+  font-size: 0.9rem;
+}
+
+.invite-success {
+  color: #27ae60;
+  font-size: 0.9rem;
+}
+
+/* Loader styling */
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.loader .spinner {
+  font-size: 2rem;
+  color: #3498db;
+  margin-bottom: 10px;
+}
+
+/* Error message styling */
+.error {
+  color: #e74c3c;
+  font-weight: bold;
+  text-align: center;
+  margin: 30px 0;
+  font-size: 1.1rem;
+}
+
+/* Keyframes */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
-  
-  .model-trainer-dashboard h1 {
-    font-size: 2.5rem;
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 15px;
+  100% {
+    transform: rotate(360deg);
   }
-  
-  .model-trainer-dashboard h2 {
-    font-size: 1.75rem;
-    color: #34495e;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-  
-  .model-trainer-dashboard p {
-    font-size: 1rem;
-    color: #7f8c8d;
-    line-height: 1.6;
-    text-align: center;
-  }
-  
-  /* Section for project details */
-  .project-details {
-    margin-top: 30px;
-  }
-  
-  .project-details h3 {
-    font-size: 1.5rem;
-    color: #2980b9;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #ecf0f1;
-    padding-bottom: 5px;
-  }
-  
-  /* List of providers */
-  .providers-list {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .provider-item {
-    background-color: #ecf0f1;
-    border: 1px solid #bdc3c7;
-    border-radius: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .model-trainer-dashboard {
     padding: 20px;
-    margin-bottom: 15px;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
   }
-  
-  .provider-item:hover {
-    background-color: #d0d7de;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  .dashboard-header h1 {
+    font-size: 2rem;
   }
-  
-  .provider-item p {
-    margin: 8px 0;
-    font-size: 1rem;
-    color: #2c3e50;
+
+  .dashboard-header h2 {
+    font-size: 1.5rem;
   }
-  
-  .provider-item strong {
-    color: #34495e;
+
+  .provider-card {
+    padding: 15px;
   }
-  
-  /* Loader styling */
-  .loader {
-    border: 6px solid #f3f3f3;
-    border-top: 6px solid #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 30px auto;
+
+  .provider-info p,
+  .dataset-details p {
+    font-size: 0.9rem;
   }
-  
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+
+  .invite-btn {
+    width: 100%;
+    justify-content: center;
   }
-  
-  /* Error message styling */
-  .error {
-    color: #e74c3c;
-    font-weight: bold;
-    text-align: center;
-    margin: 30px 0;
+
+  .invite-group label {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  /* Responsive design */
-  @media (max-width: 768px) {
-    .model-trainer-dashboard {
-      padding: 15px;
-    }
-  
-    .model-trainer-dashboard h1 {
-      font-size: 2rem;
-    }
-  
-    .model-trainer-dashboard h2 {
-      font-size: 1.5rem;
-    }
-  
-    .provider-item p {
-      font-size: 0.9rem;
-    }
+
+  .invite-group input[type="text"] {
+    width: 100%;
   }
-  
+}

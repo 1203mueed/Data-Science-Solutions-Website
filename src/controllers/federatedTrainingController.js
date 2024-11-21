@@ -174,10 +174,10 @@ const respondToInvitation = async (req, res) => {
   }
 };
 
-// Updated `uploadDatasetFolder` to preserve folder structure
+// Updated `uploadDatasetFolder` to handle replacing existing datasets
 const uploadDatasetFolder = async (req, res) => {
   try {
-    const { trainingId, userId } = req.body;
+    const { trainingId, userId, datasetDescription } = req.body;
     let relativePaths = req.body.relativePath;
 
     if (!trainingId || !userId) {
@@ -204,11 +204,26 @@ const uploadDatasetFolder = async (req, res) => {
       relativePaths = [relativePaths];
     }
 
+    // If a dataset already exists, delete it
+    if (provider.datasetFolder) {
+      const existingFolderPath = path.join(__dirname, '../assets/DatasetUploads', provider.datasetFolder);
+      try {
+        await fs.rm(existingFolderPath, { recursive: true, force: true });
+        provider.datasetFolder = ''; // Clear the datasetFolder field
+        provider.datasetDescription = ''; // Clear the description as well
+      } catch (err) {
+        console.error('Error deleting existing dataset folder:', err.message);
+        return res.status(500).json({ error: 'Failed to delete existing dataset folder' });
+      }
+    }
+
+    // Create a new folder for the uploaded dataset
     const folderName = `provider-${userId}-${Date.now()}`;
     const baseUploadPath = path.join(__dirname, '../assets/DatasetUploads', folderName);
 
     await fs.mkdir(baseUploadPath, { recursive: true });
 
+    // Move uploaded files to the target directory while preserving folder structure
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
       const relativePath = relativePaths[i] || file.originalname;
@@ -220,12 +235,46 @@ const uploadDatasetFolder = async (req, res) => {
       await fs.rename(file.path, targetPath);
     }
 
+    // Update the provider's datasetFolder and datasetDescription fields
     provider.datasetFolder = folderName;
+    provider.datasetDescription = datasetDescription || '';
     await training.save();
 
     res.status(200).json({ training });
   } catch (err) {
     console.error('Error uploading dataset folder:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// New controller function to update dataset description
+const updateDatasetDescription = async (req, res) => {
+  try {
+    const { projectId, datasetFolder } = req.params;
+    const { userId, datasetDescription } = req.body;
+
+    if (!projectId || !datasetFolder || !userId || datasetDescription === undefined) {
+      return res.status(400).json({ error: 'Project ID, Dataset Folder, User ID, and Dataset Description are required' });
+    }
+
+    const training = await FederatedTraining.findById(projectId).populate('dataProviders.user');
+
+    if (!training) {
+      return res.status(404).json({ error: 'Federated training project not found' });
+    }
+
+    const provider = training.dataProviders.find(dp => dp.user._id.toString() === userId && dp.datasetFolder === datasetFolder);
+
+    if (!provider) {
+      return res.status(403).json({ error: 'You are not authorized to update this dataset' });
+    }
+
+    provider.datasetDescription = datasetDescription;
+    await training.save();
+
+    res.status(200).json({ message: 'Dataset description updated successfully', training });
+  } catch (err) {
+    console.error('Error updating dataset description:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -393,7 +442,6 @@ const getTrainerProjectDetails = async (req, res) => {
       return count;
     };
 
-    // Prepare data providers' info
     const dataProvidersInfo = await Promise.all(
       training.dataProviders.map(async (provider) => {
         let fileCount = 0;
@@ -407,6 +455,7 @@ const getTrainerProjectDetails = async (req, res) => {
           email: provider.user.email,
           status: provider.status,
           filesUploaded: provider.datasetFolder ? fileCount : 0,
+          datasetDescription: provider.datasetDescription || '',
         };
       })
     );
@@ -426,6 +475,236 @@ const getTrainerProjectDetails = async (req, res) => {
   }
 };
 
+// Create a new training session with an uploaded notebook
+const createTrainingSession = async (req, res) => {
+  const { projectId } = req.params;
+  const { sessionName } = req.body;
+  const notebook = req.file;
+
+  if (!notebook) {
+    return res.status(400).json({ error: 'Notebook file is required.' });
+  }
+
+  try {
+    const federatedTraining = await FederatedTraining.findById(projectId);
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    // Generate a session name if not provided
+    const newSessionName = sessionName || `Training Session ${federatedTraining.trainingHistory.length + 1}`;
+
+    // Create a new training session
+    const newTrainingSession = {
+      sessionName: newSessionName,
+      notebookPath: notebook.path,
+      files: [], // Initially empty; files can be uploaded later
+    };
+
+    federatedTraining.trainingHistory.push(newTrainingSession);
+    await federatedTraining.save();
+
+    res.status(201).json({
+      message: 'Training session created successfully.',
+      trainingSession: federatedTraining.trainingHistory[federatedTraining.trainingHistory.length - 1],
+    });
+  } catch (error) {
+    console.error('Error creating training session:', error);
+    res.status(500).json({ error: 'An error occurred while creating the training session.' });
+  }
+};
+
+// List all training sessions (Training History) for a project
+const listTrainingHistory = async (req, res) => {
+  const { projectId } = req.params;
+
+  try {
+    const federatedTraining = await FederatedTraining.findById(projectId).populate('dataProviders.user', 'name email');
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    res.status(200).json({
+      trainingHistory: federatedTraining.trainingHistory,
+    });
+  } catch (error) {
+    console.error('Error listing training history:', error);
+    res.status(500).json({ error: 'An error occurred while fetching training history.' });
+  }
+};
+
+// Get details of a specific training session
+const getTrainingSessionDetails = async (req, res) => {
+  const { projectId, trainingId } = req.params;
+
+  try {
+    const federatedTraining = await FederatedTraining.findById(projectId);
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+
+    if (!trainingSession) {
+      return res.status(404).json({ error: 'Training session not found.' });
+    }
+
+    res.status(200).json({
+      trainingSession,
+    });
+  } catch (error) {
+    console.error('Error fetching training session details:', error);
+    res.status(500).json({ error: 'An error occurred while fetching training session details.' });
+  }
+};
+
+// Upload additional files to a training session
+const uploadFilesToTraining = async (req, res) => {
+  const { projectId, trainingId } = req.params;
+  const files = req.files;
+
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: 'At least one file is required to upload.' });
+  }
+
+  try {
+    const federatedTraining = await FederatedTraining.findById(projectId);
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+
+    if (!trainingSession) {
+      return res.status(404).json({ error: 'Training session not found.' });
+    }
+
+    // Add each uploaded file to the training session's files array
+    files.forEach((file) => {
+      trainingSession.files.push({
+        filename: file.originalname,
+        filepath: file.path,
+      });
+    });
+
+    await federatedTraining.save();
+
+    res.status(200).json({
+      message: 'Files uploaded successfully.',
+      files: trainingSession.files,
+    });
+  } catch (error) {
+    console.error('Error uploading files to training session:', error);
+    res.status(500).json({ error: 'An error occurred while uploading files to the training session.' });
+  }
+};
+
+// Download a specific file from a training session
+const downloadFileFromTraining = async (req, res) => {
+  const { projectId, trainingId, fileId } = req.params;
+
+  try {
+    const federatedTraining = await FederatedTraining.findById(projectId);
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+
+    if (!trainingSession) {
+      return res.status(404).json({ error: 'Training session not found.' });
+    }
+
+    const file = trainingSession.files.id(fileId);
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found.' });
+    }
+
+    // Implement any necessary checks to ensure the file does not violate data privacy
+    // For example, restrict downloading of certain file types or sensitive files
+
+    const filePath = path.resolve(file.filepath);
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File does not exist on the server.' });
+    }
+
+    res.download(filePath, file.filename, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        res.status(500).json({ error: 'An error occurred while downloading the file.' });
+      }
+    });
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    res.status(500).json({ error: 'An error occurred while downloading the file.' });
+  }
+};
+
+// Analyze a code cell before execution using GPT-4
+const analyzeCodeCell = async (req, res) => {
+  const { projectId, trainingId } = req.params;
+  const { codeCell } = req.body;
+
+  if (!codeCell || typeof codeCell !== 'string') {
+    return res.status(400).json({ error: 'Valid code cell content is required.' });
+  }
+
+  try {
+    const federatedTraining = await FederatedTraining.findById(projectId);
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+
+    if (!trainingSession) {
+      return res.status(404).json({ error: 'Training session not found.' });
+    }
+
+    // Craft the prompt for GPT-4
+    const prompt = `
+You are a security assistant. Analyze the following Python code cell and determine if it accesses or prints raw data from data providers. 
+Respond with "APPROVED" if the code does not access or print any raw data, or "FLAGGED" followed by a brief explanation if it does.
+
+Code Cell:
+${codeCell}
+`;
+
+    // Call GPT-4 API
+    const response = await openai.createCompletion({
+      model: 'text-davinci-004', // Use the appropriate GPT-4 model identifier
+      prompt: prompt,
+      max_tokens: 150,
+      temperature: 0,
+    });
+
+    const gptOutput = response.data.choices[0].text.trim();
+
+    if (gptOutput.startsWith('APPROVED')) {
+      return res.status(200).json({ status: 'approved' });
+    } else if (gptOutput.startsWith('FLAGGED')) {
+      const feedback = gptOutput.replace('FLAGGED', '').trim();
+      return res.status(200).json({ status: 'flagged', feedback });
+    } else {
+      // Handle unexpected responses
+      return res.status(500).json({ error: 'Unexpected response from code analysis.' });
+    }
+  } catch (error) {
+    console.error('Error analyzing code cell:', error);
+    res.status(500).json({ error: 'An error occurred while analyzing the code cell.' });
+  }
+};
+
+
 
 module.exports = {
   getFederatedTrainings,
@@ -437,4 +716,11 @@ module.exports = {
   deleteDatasetFolder,
   countFilesInFolder,
   getTrainerProjectDetails,
+  updateDatasetDescription,
+  createTrainingSession,
+  listTrainingHistory,
+  getTrainingSessionDetails,
+  uploadFilesToTraining,
+  downloadFileFromTraining,
+  analyzeCodeCell,
 };
