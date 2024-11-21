@@ -19,7 +19,7 @@
 
 .dashboard-header h1 {
   font-size: 2.5rem;
-  color: #2c3e50;
+  color: var(--primary-color);
   margin-bottom: 10px;
 }
 
@@ -36,10 +36,11 @@
 }
 
 /* Section headings */
-.project-details h3,
-.invite-section h3 {
+.data-providers-section h3,
+.invite-section h3,
+.training-history-section h3 {
   font-size: 1.5rem;
-  color: #2980b9;
+  color: var(--secondary-color);
   margin-bottom: 20px;
   border-bottom: 2px solid #ecf0f1;
   padding-bottom: 8px;
@@ -52,6 +53,7 @@
   gap: 20px;
 }
 
+/* Provider card styling */
 .provider-card {
   background-color: #f9f9f9;
   border: 1px solid #bdc3c7;
@@ -120,6 +122,8 @@
   white-space: pre-wrap;
   font-size: 0.95rem;
   color: #555555;
+  max-height: 80px;
+  overflow-y: auto;
 }
 
 /* Invite section */
@@ -156,13 +160,13 @@
 }
 
 .invite-group input[type="text"]:focus {
-  border-color: #2980b9;
+  border-color: var(--primary-color);
   outline: none;
 }
 
 .invite-btn {
   padding: 12px 20px;
-  background-color: #2980b9;
+  background-color: var(--primary-color);
   border: none;
   border-radius: 8px;
   color: #ffffff;
@@ -173,10 +177,11 @@
   align-items: center;
   gap: 8px;
   transition: background-color 0.3s ease;
+  width: fit-content;
 }
 
 .invite-btn:hover {
-  background-color: #1c5980;
+  background-color: #e68900; /* Adjusted to a darker shade manually */
 }
 
 .invite-btn:disabled {
@@ -192,16 +197,6 @@
   animation: spin 1s linear infinite;
 }
 
-.invite-error {
-  color: #e74c3c;
-  font-size: 0.9rem;
-}
-
-.invite-success {
-  color: #27ae60;
-  font-size: 0.9rem;
-}
-
 /* Loader styling */
 .loader {
   display: flex;
@@ -212,7 +207,7 @@
 
 .loader .spinner {
   font-size: 2rem;
-  color: #3498db;
+  color: var(--primary-color);
   margin-bottom: 10px;
 }
 
@@ -225,14 +220,61 @@
   font-size: 1.1rem;
 }
 
-/* Keyframes */
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+/* New Training Button */
+.new-training-btn {
+  padding: 12px 20px;
+  background-color: var(--secondary-color);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.new-training-btn:hover {
+  background-color: #d18a00; /* Adjusted to a darker shade manually */
+}
+
+/* Training History Section */
+.training-history-section {
+  margin-top: 50px;
+}
+
+.training-history-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.training-session-card {
+  background-color: #f9f9f9;
+  border: 1px solid #bdc3c7;
+  border-radius: 10px;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.training-session-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.training-session-card h4 {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.training-session-card p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+  color: #555555;
 }
 
 /* Responsive design */
@@ -258,7 +300,8 @@
     font-size: 0.9rem;
   }
 
-  .invite-btn {
+  .invite-btn,
+  .new-training-btn {
     width: 100%;
     justify-content: center;
   }

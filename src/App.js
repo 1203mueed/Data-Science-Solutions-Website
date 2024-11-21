@@ -24,8 +24,10 @@ import FederatedTrainingPage from './pages/FederatedTrainingPage';
 import FederatedTrainingStartPage from './pages/FederatedTrainingStartPage';
 import FederatedTrainingViewPage from './pages/FederatedTrainingViewPage';
 import DataProviderDashboard from './pages/DataProviderDashboard';
-import ModelTrainerDashboard from './pages/ModelTrainerDashboard'; // Ensure this component exists
-import ProtectedRoute from './components/ProtectedRoute'; // Ensure this component exists and is correctly implemented
+import ModelTrainerDashboard from './pages/ModelTrainerDashboard';
+import NewTrainingForm from './pages/NewTrainingForm';
+import TrainingSessionPage from './pages/TrainingSessionPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -33,8 +35,8 @@ function App() {
   useEffect(() => {
     // Retrieve user data from localStorage on initial render
     const savedUser = JSON.parse(localStorage.getItem('user'));
-    if (savedUser && savedUser._id) { // Assuming _id is used
-      setUser({ ...savedUser, userId: savedUser._id }); // Map _id to userId
+    if (savedUser && savedUser._id) {
+      setUser({ ...savedUser, userId: savedUser._id });
     }
   }, []);
 
@@ -111,6 +113,26 @@ function App() {
               element={
                 <ProtectedRoute user={user}>
                   <DataProviderDashboard user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* New Training Form Route */}
+            <Route
+              path="/model-trainer/dashboard/:projectId/new-training"
+              element={
+                <ProtectedRoute user={user}>
+                  <NewTrainingForm user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Training Session Page Route */}
+            <Route
+              path="/model-trainer/dashboard/:projectId/trainings/:trainingId"
+              element={
+                <ProtectedRoute user={user}>
+                  <TrainingSessionPage user={user} />
                 </ProtectedRoute>
               }
             />

@@ -401,6 +401,8 @@ const countFilesInFolder = async (req, res) => {
   }
 };
 
+// controllers/federatedTrainingController.js
+
 const getTrainerProjectDetails = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -465,6 +467,7 @@ const getTrainerProjectDetails = async (req, res) => {
       projectName: training.projectName,
       description: training.description,
       dataProviders: dataProvidersInfo,
+      trainingHistory: training.trainingHistory, // Include training history here
       createdAt: training.createdAt,
     };
 
@@ -475,14 +478,18 @@ const getTrainerProjectDetails = async (req, res) => {
   }
 };
 
-// Create a new training session with an uploaded notebook
+// controllers/federatedTrainingController.js
+
 const createTrainingSession = async (req, res) => {
   const { projectId } = req.params;
-  const { sessionName } = req.body;
-  const notebook = req.file;
+  const { sessionName, userId } = req.body;
 
-  if (!notebook) {
-    return res.status(400).json({ error: 'Notebook file is required.' });
+  if (!sessionName) {
+    return res.status(400).json({ error: 'Session name is required.' });
+  }
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required.' });
   }
 
   try {
@@ -492,28 +499,72 @@ const createTrainingSession = async (req, res) => {
       return res.status(404).json({ error: 'Project not found.' });
     }
 
-    // Generate a session name if not provided
-    const newSessionName = sessionName || `Training Session ${federatedTraining.trainingHistory.length + 1}`;
+    // Verify that the requesting user is the model trainer
+    if (federatedTraining.modelTrainer.toString() !== userId) {
+      return res.status(403).json({
+        error:
+          'You are not authorized to create a training session for this project.',
+      });
+    }
+
+    // **Check for Duplicate Session Name**
+    const isDuplicate = federatedTraining.trainingHistory.some(
+      (session) => session.sessionName.toLowerCase() === sessionName.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      return res.status(400).json({
+        error: `A training session with the name "${sessionName}" already exists in this project.`,
+      });
+    }
+
+    // Define the path to the DatasetUploads directory
+    const datasetUploadsDir = path.join(__dirname, '../assets/DatasetUploads');
+
+    // Ensure the directory exists
+    await fs.mkdir(datasetUploadsDir, { recursive: true });
+
+    // Create a unique filename for the notebook
+    const notebookFilename = `notebook-${projectId}-${Date.now()}.ipynb`;
+    const notebookPath = path.join(datasetUploadsDir, notebookFilename);
+
+    // Create an empty Jupyter notebook file
+    const emptyNotebook = {
+      cells: [],
+      metadata: {},
+      nbformat: 4,
+      nbformat_minor: 4,
+    };
+
+    await fs.writeFile(notebookPath, JSON.stringify(emptyNotebook, null, 2));
 
     // Create a new training session
     const newTrainingSession = {
-      sessionName: newSessionName,
-      notebookPath: notebook.path,
+      sessionName: sessionName.trim(),
+      notebookPath: notebookFilename, // Save only the filename
       files: [], // Initially empty; files can be uploaded later
     };
 
     federatedTraining.trainingHistory.push(newTrainingSession);
     await federatedTraining.save();
 
+    const createdSession =
+      federatedTraining.trainingHistory[
+        federatedTraining.trainingHistory.length - 1
+      ];
+
     res.status(201).json({
       message: 'Training session created successfully.',
-      trainingSession: federatedTraining.trainingHistory[federatedTraining.trainingHistory.length - 1],
+      trainingSession: createdSession,
     });
   } catch (error) {
     console.error('Error creating training session:', error);
-    res.status(500).json({ error: 'An error occurred while creating the training session.' });
+    res
+      .status(500)
+      .json({ error: 'An error occurred while creating the training session.' });
   }
 };
+
 
 // List all training sessions (Training History) for a project
 const listTrainingHistory = async (req, res) => {

@@ -1,12 +1,21 @@
 // src/pages/ModelTrainerDashboard.js
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/ModelTrainerDashboard.css';
-import { FaCheckCircle, FaTimesCircle, FaSpinner, FaUserPlus } from 'react-icons/fa';
+import { 
+  FaCheckCircle, 
+  FaTimesCircle, 
+  FaSpinner, 
+  FaUserPlus, 
+  FaPlus 
+} from 'react-icons/fa';
 
 const ModelTrainerDashboard = ({ user }) => {
   const { projectId } = useParams();
+  const navigate = useNavigate();
+
   const [trainerProjectDetails, setTrainerProjectDetails] = useState(null);
+  const [trainingHistory, setTrainingHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [inviting, setInviting] = useState(false);
@@ -30,6 +39,7 @@ const ModelTrainerDashboard = ({ user }) => {
         if (response.ok) {
           const data = await response.json();
           setTrainerProjectDetails(data.trainerProjectDetails);
+          setTrainingHistory(data.trainerProjectDetails.trainingHistory || []);
         } else {
           const errorData = await response.json();
           setError(errorData.error || 'Failed to fetch project details');
@@ -81,6 +91,7 @@ const ModelTrainerDashboard = ({ user }) => {
 
       if (res.ok) {
         setTrainerProjectDetails(data.training);
+        setTrainingHistory(data.training.trainingHistory || []);
         setInviteSuccess('Data providers invited successfully.');
         setNewProviderEmail('');
       } else {
@@ -93,6 +104,15 @@ const ModelTrainerDashboard = ({ user }) => {
       setInviting(false);
     }
   };
+
+  const handleNewTraining = () => {
+    navigate(`/model-trainer/dashboard/${projectId}/new-training`);
+  };  
+
+  const handleTrainingClick = (trainingSessionId) => {
+    navigate(`/model-trainer/dashboard/${projectId}/trainings/${trainingSessionId}`);
+  };
+   
 
   if (loading) {
     return (
@@ -121,7 +141,8 @@ const ModelTrainerDashboard = ({ user }) => {
         <p>{trainerProjectDetails.description}</p>
       </header>
 
-      <section className="project-details">
+      {/* Section to Display Data Providers */}
+      <section className="data-providers-section">
         <h3>Data Providers</h3>
         {trainerProjectDetails.dataProviders.length === 0 ? (
           <p>No data providers invited for this project.</p>
@@ -131,10 +152,10 @@ const ModelTrainerDashboard = ({ user }) => {
               <div key={index} className="provider-card">
                 <div className="provider-info">
                   <p>
-                    <strong>Name:</strong> {provider.name}
+                    <strong>Name:</strong> {provider.name || 'N/A'}
                   </p>
                   <p>
-                    <strong>Email:</strong> {provider.email}
+                    <strong>Email:</strong> {provider.email || 'N/A'}
                   </p>
                   <p>
                     <strong>Status:</strong>{' '}
@@ -150,27 +171,22 @@ const ModelTrainerDashboard = ({ user }) => {
                       <span className="status invited">Invited</span>
                     )}
                   </p>
-                  <p>
-                    <strong>Dataset Uploaded:</strong> {provider.filesUploaded > 0 ? 'Yes' : 'No'}
-                  </p>
+                  {provider.datasetDescription && (
+                    <div className="dataset-details">
+                      <p>
+                        <strong>Dataset Description:</strong>
+                      </p>
+                      <p className="dataset-description">{provider.datasetDescription || 'No description provided.'}</p>
+                    </div>
+                  )}
                 </div>
-                {provider.filesUploaded > 0 && (
-                  <div className="dataset-details">
-                    <p>
-                      <strong>Files Uploaded:</strong> {provider.filesUploaded}
-                    </p>
-                    <p>
-                      <strong>Dataset Description:</strong>
-                    </p>
-                    <p className="dataset-description">{provider.datasetDescription || 'No description provided.'}</p>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         )}
       </section>
 
+      {/* Section to Invite New Data Provider */}
       <section className="invite-section">
         <h3>Invite New Data Provider</h3>
         <form onSubmit={handleInvite} className="invite-form">
@@ -200,6 +216,32 @@ const ModelTrainerDashboard = ({ user }) => {
           </button>
         </form>
       </section>
+
+      {/* Section to Display Training History */}
+      <section className="training-history-section">
+        <h3>Model Training History</h3>
+        {trainingHistory.length === 0 ? (
+          <p>No training history available.</p>
+        ) : (
+          <div className="training-history-list">
+            {trainingHistory.map((session) => (
+              <div
+                key={session._id}
+                className="training-session-card"
+                onClick={() => handleTrainingClick(session._id)}
+              >
+                <h4>{session.sessionName}</h4>
+                <p>Created At: {new Date(session.createdAt).toLocaleString()}</p>
+                {/* Add any additional details you want to display */}
+              </div>
+            ))}
+          </div>
+        )}
+        <button className="new-training-btn" onClick={handleNewTraining}>
+          <FaPlus /> New Training
+        </button>
+      </section>
+
     </div>
   );
 };
