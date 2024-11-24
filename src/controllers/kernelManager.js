@@ -10,9 +10,10 @@ const kernels = {};
  * Start a Python REPL server for a given training session.
  * @param {String} projectId
  * @param {String} trainingId
+ * @param {String} projectDirPath - Absolute path to the project directory
  * @returns {ChildProcess}
  */
-const startKernel = (projectId, trainingId) => {
+const startKernel = (projectId, trainingId, projectDirPath) => {
   const sessionKey = `${projectId}_${trainingId}`;
 
   if (kernels[sessionKey]) {
@@ -23,7 +24,7 @@ const startKernel = (projectId, trainingId) => {
   const replScriptPath = path.join(__dirname, 'repl_server.py');
 
   const pythonProcess = spawn('python', [replScriptPath], {
-    cwd: path.dirname(replScriptPath),
+    cwd: projectDirPath, // Set the cwd to the project directory
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
@@ -36,9 +37,7 @@ const startKernel = (projectId, trainingId) => {
   });
 
   pythonProcess.stdout.on('data', (data) => {
-    // You can handle or log stdout data here if needed
-    // For example:
-    // console.log(`Kernel ${sessionKey} stdout: ${data.toString()}`);
+    // Handle stdout data if needed
   });
 
   pythonProcess.on('close', (code) => {
@@ -47,7 +46,7 @@ const startKernel = (projectId, trainingId) => {
   });
 
   kernels[sessionKey] = pythonProcess;
-  console.log(`Started kernel for session: ${sessionKey}`);
+  console.log(`Started kernel for session: ${sessionKey} in directory: ${projectDirPath}`);
 
   return pythonProcess;
 };
@@ -57,16 +56,17 @@ const startKernel = (projectId, trainingId) => {
  * @param {String} projectId
  * @param {String} trainingId
  * @param {String} code
+ * @param {String} projectDirPath - Absolute path to the project directory
  * @returns {Promise<{output: String, error: String}>}
  */
-const executeCode = (projectId, trainingId, code) => {
+const executeCode = (projectId, trainingId, code, projectDirPath) => {
   return new Promise((resolve, reject) => {
     const sessionKey = `${projectId}_${trainingId}`;
     let kernel = kernels[sessionKey];
 
     if (!kernel) {
       // Start the kernel if it doesn't exist
-      kernel = startKernel(projectId, trainingId);
+      kernel = startKernel(projectId, trainingId, projectDirPath);
     }
 
     // Prepare the code to send: first send the length, then the code

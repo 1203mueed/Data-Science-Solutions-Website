@@ -189,7 +189,12 @@ const TrainingSessionPage = ({ user }) => {
         {/* Training Session Details */}
         <header>
           <h2>{trainingSession.sessionName}</h2>
-          <p>Created At: {new Date(trainingSession.createdAt).toLocaleString()}</p>
+          <p>
+            Created At:{' '}
+            {trainingSession.createdAt
+              ? new Date(trainingSession.createdAt).toLocaleString()
+              : 'N/A'}
+          </p>
         </header>
 
         {/* Notebook Component */}

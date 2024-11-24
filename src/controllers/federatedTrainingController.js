@@ -708,6 +708,7 @@ const createTrainingSession = async (req, res) => {
       notebookPath: '', // No notebook path since it's not being uploaded
       cells: [], // Initialize with empty cells
       files: [],
+      createdAt: new Date(),
     };
 
     federatedTraining.trainingHistory.push(newSession);
@@ -722,7 +723,6 @@ const createTrainingSession = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
-
 
 /**
  * Upload additional files to a training session.
@@ -888,15 +888,18 @@ const getTrainingSessionDetails = async (req, res) => {
     }
 
     // Ensure cells include approved and rejectionReason fields
-    const cells = trainingSession.cells.map((cell) => ({
-      cellId: cell.cellId,
-      type: cell.type,
-      code: cell.code,
-      output: cell.output,
-      status: cell.status,
-      approved: cell.approved,
-      rejectionReason: cell.rejectionReason,
-    }));
+    // Ensure trainingSession.cells is an array
+    const cells = Array.isArray(trainingSession.cells)
+      ? trainingSession.cells.map((cell) => ({
+          cellId: cell.cellId,
+          type: cell.type,
+          code: cell.code,
+          output: cell.output,
+          status: cell.status,
+          approved: cell.approved,
+          rejectionReason: cell.rejectionReason,
+        }))
+      : [];
 
     // Function to count files in a directory
     const countFiles = async (dir) => {
@@ -1011,6 +1014,7 @@ const getTrainingSessionDetails = async (req, res) => {
         cells: Array.isArray(cells) ? cells : [],
         dataProviders: dataProvidersInfo,
         projectFolderStructure: projectFolderStructure, // Include project folder structure
+        createdAt: trainingSession.createdAt,
       },
     });
   } catch (error) {
@@ -1064,7 +1068,6 @@ const addCell = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
-
 
 /**
  * Approve a specific code cell.
@@ -1242,6 +1245,7 @@ const updateCell = async (req, res) => {
  * Execute a specific code cell in a training session.
  * Initially, all cells are approved.
  */
+
 const executeCell = async (req, res) => {
   const { projectId, trainingId, cellId } = req.params;
 
@@ -1280,8 +1284,20 @@ const executeCell = async (req, res) => {
       return res.status(400).json({ error: 'Cannot execute empty code.' });
     }
 
+    // Get the project directory path
+    const projectDirPath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder
+    );
+
     // Execute the code using kernelManager
-    const output = await executeCode(projectId, trainingId, cell.code);
+    const output = await executeCode(
+      projectId,
+      trainingId,
+      cell.code,
+      projectDirPath // Pass the project directory path
+    );
 
     // Update cell status and output
     cell.output = output.output;

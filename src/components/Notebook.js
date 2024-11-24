@@ -51,7 +51,7 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
     } else {
       setLocalCells(cells);
     }
-  }, [projectId, trainingId, cells, setCells]);
+  }, [projectId, trainingId, setCells]);
 
   /**
    * Handle updating the cell code locally.
