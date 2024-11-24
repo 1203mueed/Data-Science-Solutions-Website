@@ -727,6 +727,8 @@ const createTrainingSession = async (req, res) => {
 /**
  * Upload additional files to a training session.
  */
+// federatedTrainingController.js
+
 const uploadFilesToTraining = async (req, res) => {
   const { projectId, trainingId } = req.params;
   const files = req.files;
@@ -748,24 +750,36 @@ const uploadFilesToTraining = async (req, res) => {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
-    const projectFolderName = federatedTraining.projectFolder;
-    const projectFolderPath = path.join(__dirname, '../assets/DatasetUploads', projectFolderName);
-
     files.forEach((file) => {
-      const relativeFilePath = path.relative(projectFolderPath, file.path);
+      const relativeFilePath = path.relative(
+        path.join(__dirname, '../assets/DatasetUploads', federatedTraining.projectFolder),
+        file.path
+      );
 
       trainingSession.files.push({
         filename: file.originalname,
-        filepath: relativeFilePath, // Store path relative to project folder
+        filepath: relativeFilePath,
       });
       console.log(`Uploaded file: ${file.originalname} to ${relativeFilePath}`);
     });
 
     await federatedTraining.save();
 
+    // Rebuild project folder structure
+    const projectFolderPath = path.join(__dirname, '../assets/DatasetUploads', federatedTraining.projectFolder);
+    const projectChildren = await buildFolderStructure(projectFolderPath);
+    const projectFolderStructure = [
+      {
+        name: federatedTraining.projectFolder,
+        type: 'folder',
+        children: projectChildren,
+      },
+    ];
+
     res.status(200).json({
       message: 'Files uploaded successfully.',
       files: trainingSession.files,
+      projectFolderStructure: projectFolderStructure,
     });
   } catch (error) {
     console.error('Error uploading files to training session:', error);
@@ -851,13 +865,14 @@ const listTrainingHistory = async (req, res) => {
 /**
  * Get details of a specific training session.
  */
+
 const getTrainingSessionDetails = async (req, res) => {
   const { projectId, trainingId } = req.params;
 
   try {
     const federatedTraining = await FederatedTraining.findById(projectId)
-      .populate('modelTrainer')
-      .populate('dataProviders.user');
+      .populate('modelTrainer', 'name email')
+      .populate('dataProviders.user', 'name email');
 
     if (!federatedTraining) {
       return res.status(404).json({ error: 'Project not found.' });
@@ -941,7 +956,16 @@ const getTrainingSessionDetails = async (req, res) => {
           fileCount = await countFiles(folderPath);
 
           // Build folder structure
-          folderStructure = await buildFolderStructure(folderPath);
+          const children = await buildFolderStructure(folderPath);
+
+          // Wrap the folderStructure with the datasetFolder name
+          folderStructure = [
+            {
+              name: provider.datasetFolder,
+              type: 'folder',
+              children: children,
+            },
+          ];
         }
 
         return {
@@ -957,6 +981,27 @@ const getTrainingSessionDetails = async (req, res) => {
       })
     );
 
+    // Build project folder structure
+    const projectFolderPath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder
+    );
+
+    let projectFolderStructure = [];
+    try {
+      const projectChildren = await buildFolderStructure(projectFolderPath);
+      projectFolderStructure = [
+        {
+          name: federatedTraining.projectFolder,
+          type: 'folder',
+          children: projectChildren,
+        },
+      ];
+    } catch (err) {
+      console.error('Error building project folder structure:', err.message);
+    }
+
     res.status(200).json({
       trainingSession: {
         trainingId: trainingSession.trainingId,
@@ -964,7 +1009,8 @@ const getTrainingSessionDetails = async (req, res) => {
         notebookPath: trainingSession.notebookPath,
         files: trainingSession.files,
         cells: Array.isArray(cells) ? cells : [],
-        dataProviders: dataProvidersInfo, // Include dataProviders in the response
+        dataProviders: dataProvidersInfo,
+        projectFolderStructure: projectFolderStructure, // Include project folder structure
       },
     });
   } catch (error) {
@@ -972,9 +1018,6 @@ const getTrainingSessionDetails = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
-
-
-
 
 /**
  * Add a new cell to a training session.

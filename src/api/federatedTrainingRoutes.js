@@ -51,6 +51,45 @@ const datasetUploadStorage = multer.diskStorage({
 
 const datasetUpload = multer({ storage: datasetUploadStorage });
 
+
+// federatedTrainingRoutes.js
+
+const trainerFileUploadStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    try {
+      const { projectId } = req.params;
+      // Fetch the project folder name
+      const federatedTraining = await FederatedTraining.findById(projectId);
+      if (!federatedTraining) {
+        return cb(new Error('Project not found.'), null);
+      }
+
+      const projectFolderName = federatedTraining.projectFolder;
+      const projectFolderPath = path.join(__dirname, '../assets/DatasetUploads', projectFolderName, 'trainer_files');
+
+      // Ensure the trainer_files directory exists
+      await fs.mkdir(projectFolderPath, { recursive: true });
+      cb(null, projectFolderPath);
+    } catch (err) {
+      console.error('Error in Multer destination:', err.message);
+      cb(err, null);
+    }
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname); // Keep the original file name
+  },
+});
+
+const trainerFileUpload = multer({ storage: trainerFileUploadStorage });
+
+router.post(
+  '/:projectId/trainings/:trainingId/files',
+  trainerFileUpload.array('files'), // Use trainerFileUpload middleware
+  uploadFilesToTraining
+);
+
+
+
 // Existing Routes
 router.get('/', getFederatedTrainings);
 router.post('/create', createFederatedTraining);
@@ -89,12 +128,6 @@ router.get('/:projectId/trainings', listTrainingHistory);
 // Get details of a specific training session
 router.get('/:projectId/trainings/:trainingId', getTrainingSessionDetails);
 
-// Upload additional files to a specific training session
-router.post(
-  '/:projectId/trainings/:trainingId/files',
-  multer().array('files'), // Handle multiple file uploads named 'files'
-  uploadFilesToTraining
-);
 
 // Download a specific file from a training session
 router.get(

@@ -1,3 +1,5 @@
+// src/pages/TrainingSessionPage.js
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
@@ -11,6 +13,11 @@ const TrainingSessionPage = ({ user }) => {
   const [trainingSession, setTrainingSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // State for file upload by trainer
+  const [fileUpload, setFileUpload] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(Date.now()); // To reset input
 
   useEffect(() => {
     const fetchTrainingSessionDetails = async () => {
@@ -48,6 +55,57 @@ const TrainingSessionPage = ({ user }) => {
     }));
   };
 
+  // Handle file input change
+  const handleFileChange = (e) => {
+    setFileUpload(e.target.files);
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (e) => {
+    e.preventDefault();
+    if (!fileUpload || fileUpload.length === 0) {
+      alert('Please select at least one file to upload.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      for (let i = 0; i < fileUpload.length; i++) {
+        formData.append('files', fileUpload[i]);
+      }
+
+      const res = await fetch(
+        `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/files`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        setTrainingSession((prevSession) => ({
+          ...prevSession,
+          files: data.files,
+          projectFolderStructure: data.projectFolderStructure,
+        }));
+        alert('Files uploaded successfully.');
+        setFileUpload(null);
+        setFileInputKey(Date.now());
+      } else {
+        const errorData = await res.json();
+        console.error('Error uploading files:', errorData);
+        alert(`Error: ${errorData.error || 'Failed to upload files.'}`);
+      }
+    } catch (err) {
+      console.error('Error uploading files:', err);
+      alert('An error occurred while uploading the files.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="training-session-page">
@@ -68,79 +126,101 @@ const TrainingSessionPage = ({ user }) => {
 
   return (
     <div className="training-session-page">
-      {/* Data Providers Section */}
-      <section className="data-providers-section">
-        <h2>Data Providers</h2>
-        {trainingSession.dataProviders && trainingSession.dataProviders.length > 0 ? (
-          trainingSession.dataProviders.map((provider) => (
-            <div key={provider.userId} className="data-provider-card">
-              <div className="provider-details">
-                <p>
-                  <strong>Name:</strong> {provider.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {provider.email}
-                </p>
-                <p>
-                  <strong>Status:</strong>{' '}
-                  {provider.status.charAt(0).toUpperCase() + provider.status.slice(1)}
-                </p>
-                <p>
-                  <strong>Files Uploaded:</strong> {provider.filesUploaded}
-                </p>
-                {provider.datasetDescription && (
+      <div className="left-panel">
+        <h3>Project Folder Structure</h3>
+        {trainingSession.projectFolderStructure && (
+          <FileTree data={trainingSession.projectFolderStructure} />
+        )}
+
+        {/* File Upload Form for Trainer */}
+        <h3>Upload Files</h3>
+        <form onSubmit={handleFileUpload} className="file-upload-form">
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            key={fileInputKey} // To reset input
+          />
+          <button type="submit" disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Upload'}
+          </button>
+        </form>
+      </div>
+      <div className="right-panel">
+        {/* Data Providers Section */}
+        <section className="data-providers-section">
+          <h2>Data Providers</h2>
+          {trainingSession.dataProviders && trainingSession.dataProviders.length > 0 ? (
+            trainingSession.dataProviders.map((provider) => (
+              <div key={provider.userId} className="data-provider-card">
+                <div className="provider-details">
                   <p>
-                    <strong>Dataset Description:</strong> {provider.datasetDescription}
+                    <strong>Name:</strong> {provider.name}
                   </p>
+                  <p>
+                    <strong>Email:</strong> {provider.email}
+                  </p>
+                  <p>
+                    <strong>Status:</strong>{' '}
+                    {provider.status.charAt(0).toUpperCase() + provider.status.slice(1)}
+                  </p>
+                  <p>
+                    <strong>Files Uploaded:</strong> {provider.filesUploaded}
+                  </p>
+                  {provider.datasetDescription && (
+                    <p>
+                      <strong>Dataset Description:</strong> {provider.datasetDescription}
+                    </p>
+                  )}
+                </div>
+                {provider.folderStructure && provider.folderStructure.length > 0 && (
+                  <div className="folder-structure">
+                    <h3>Dataset Folder Structure:</h3>
+                    <FileTree data={provider.folderStructure} />
+                  </div>
                 )}
               </div>
-              {provider.folderStructure && provider.folderStructure.length > 0 && (
-                <div className="folder-structure">
-                  <h3>Dataset Folder Structure:</h3>
-                  <FileTree data={provider.folderStructure} />
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <p>No data providers associated with this training session.</p>
-        )}
-      </section>
-
-      {/* Training Session Details */}
-      <header>
-        <h2>{trainingSession.sessionName}</h2>
-        <p>Created At: {new Date(trainingSession.createdAt).toLocaleString()}</p>
-      </header>
-
-      {/* Notebook Component */}
-      <Notebook
-        projectId={projectId}
-        trainingId={trainingId}
-        cells={trainingSession.cells}
-        setCells={updateCells}
-        user={user}
-      />
-
-      {/* Files Section (Optional) */}
-      {trainingSession.files && trainingSession.files.length > 0 && (
-        <section className="files-section">
-          <h3>Files</h3>
-          <ul>
-            {trainingSession.files.map((file, index) => (
-              <li key={index}>
-                <a
-                  href={`http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/files/${file.filepath}/download`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {file.filename}
-                </a>
-              </li>
-            ))}
-          </ul>
+            ))
+          ) : (
+            <p>No data providers associated with this training session.</p>
+          )}
         </section>
-      )}
+
+        {/* Training Session Details */}
+        <header>
+          <h2>{trainingSession.sessionName}</h2>
+          <p>Created At: {new Date(trainingSession.createdAt).toLocaleString()}</p>
+        </header>
+
+        {/* Notebook Component */}
+        <Notebook
+          projectId={projectId}
+          trainingId={trainingId}
+          cells={trainingSession.cells}
+          setCells={updateCells}
+          user={user}
+        />
+
+        {/* Files Section */}
+        {trainingSession.files && trainingSession.files.length > 0 && (
+          <section className="files-section">
+            <h3>Files</h3>
+            <ul>
+              {trainingSession.files.map((file) => (
+                <li key={file._id}>
+                  <a
+                    href={`http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/files/${file._id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {file.filename}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
     </div>
   );
 };

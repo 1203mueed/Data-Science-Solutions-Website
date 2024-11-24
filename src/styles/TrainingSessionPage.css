@@ -1,26 +1,56 @@
 /* src/styles/TrainingSessionPage.css */
 
 .training-session-page {
-  padding: 2rem;
-  background-color: #ffffff;
+  display: flex;
   min-height: 100vh;
+  background-color: #ffffff;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.training-session-page header {
-  margin-bottom: 2rem;
+/* Left Panel */
+.left-panel {
+  width: 25%;
+  padding: 1rem;
+  border-right: 1px solid #ddd;
+  background-color: #f8f9fa;
+  overflow-y: auto;
 }
 
-.training-session-page header h2 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+.left-panel h3 {
+  margin-top: 1rem;
   color: var(--primary-color);
 }
 
-.training-session-page header p {
-  color: #666;
+.file-upload-form {
+  margin-top: 1rem;
 }
 
+.file-upload-form input[type="file"] {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.file-upload-form button {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.file-upload-form button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Right Panel */
+.right-panel {
+  width: 75%;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Data Providers Section */
 .data-providers-section {
   margin-bottom: 2rem;
 }
@@ -36,7 +66,6 @@
   padding: 1rem;
   margin-bottom: 1.5rem;
   background-color: #f9f9f9;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .provider-details p {
@@ -54,6 +83,25 @@
   color: var(--primary-color);
 }
 
+/* Training Session Header */
+.right-panel header {
+  margin-bottom: 2rem;
+}
+
+.right-panel header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.right-panel header p {
+  color: #666;
+}
+
+/* Notebook Component Styles */
+/* Adjust as needed based on your Notebook component */
+
+/* Files Section */
 .files-section {
   margin-top: 2rem;
 }
@@ -81,6 +129,7 @@
   text-decoration: underline;
 }
 
+/* Loader */
 .loader {
   display: flex;
   align-items: center;
@@ -94,6 +143,7 @@
   animation: spin 2s linear infinite;
 }
 
+/* Error Message */
 .error {
   color: #dc3545;
   font-weight: bold;
@@ -110,11 +160,13 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .training-session-page {
-    padding: 1rem;
+    flex-direction: column;
   }
 
-  .data-provider-card {
-    padding: 0.8rem;
+  .left-panel,
+  .right-panel {
+    width: 100%;
+    padding: 1rem;
   }
 
   .training-session-page header h2 {
