@@ -17,7 +17,7 @@ body {
     opacity: 0.9;
 }
 
-#root {
+.app-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;

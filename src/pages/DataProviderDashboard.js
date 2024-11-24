@@ -1,4 +1,5 @@
 // src/pages/DataProviderDashboard.js
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import '../styles/DataProviderDashboard.css';
@@ -15,17 +16,15 @@ const DataProviderDashboard = ({ user }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [updatedDescription, setUpdatedDescription] = useState('');
 
+  // Keys to reset file inputs
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
+  const [folderInputKey, setFolderInputKey] = useState(Date.now());
+
   useEffect(() => {
     const fetchTrainingDetails = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/federated-training/projects/${projectId}/details?userId=${user.userId}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
+          `http://localhost:5000/api/federated-training/${projectId}/details?userId=${user.userId}`
         );
 
         if (response.ok) {
@@ -74,13 +73,14 @@ const DataProviderDashboard = ({ user }) => {
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('trainingId', projectId);
-      formData.append('userId', user.userId);
+      // Files are already handled by Multer; no need to append projectId as it's in the URL
+      formData.append('userId', user.userId); // Send userId
       formData.append('datasetDescription', datasetDescription);
 
       if (fileUpload) {
         formData.append('datasetFolder', fileUpload);
-        formData.append('relativePath', fileUpload.name);
+        // For single file uploads, add its relativePath
+        formData.append('relativePath', fileUpload.name); // Ensure relativePath is provided
       }
 
       if (folderUpload.length > 0) {
@@ -90,23 +90,27 @@ const DataProviderDashboard = ({ user }) => {
         });
       }
 
-      const res = await fetch('http://localhost:5000/api/federated-training/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
+      const res = await fetch(
+        `http://localhost:5000/api/federated-training/${projectId}/upload-dataset`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
       if (res.ok) {
+        const data = await res.json(); // Expect valid JSON
         setTraining(data.training);
         alert('Dataset uploaded successfully.');
         setFileUpload(null);
         setFolderUpload([]);
         setDatasetDescription('');
-        document.getElementById('file-input').value = null;
-        document.getElementById('folder-input').value = null;
+        setFileInputKey(Date.now());
+        setFolderInputKey(Date.now());
       } else {
-        alert(`Error: ${data.error}`);
+        const errorData = await res.json(); // Read error response as JSON
+        console.error('Error uploading dataset:', errorData);
+        alert(`Error: ${errorData.error || 'Failed to upload dataset.'}`);
       }
     } catch (err) {
       console.error('Error uploading dataset:', err);
@@ -117,18 +121,23 @@ const DataProviderDashboard = ({ user }) => {
   };
 
   const handleDelete = async (datasetFolder) => {
-    if (!window.confirm('Are you sure you want to delete this dataset? This action cannot be undone.')) {
+    if (
+      !window.confirm(
+        'Are you sure you want to delete this dataset? This action cannot be undone.'
+      )
+    ) {
       return;
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/federated-training/upload/${projectId}/${datasetFolder}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user.userId }),
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/federated-training/${projectId}/delete-dataset`,
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.userId, datasetFolder }),
+        }
+      );
 
       const data = await res.json();
 
@@ -146,7 +155,9 @@ const DataProviderDashboard = ({ user }) => {
 
   const handleEditDescription = () => {
     setIsEditing(true);
-    const currentProvider = training.dataProviders.find(dp => dp.user._id === user.userId);
+    const currentProvider = training.dataProviders.find(
+      (dp) => dp.user._id.toString() === user.userId
+    );
     setUpdatedDescription(currentProvider?.datasetDescription || '');
   };
 
@@ -156,20 +167,26 @@ const DataProviderDashboard = ({ user }) => {
   };
 
   const handleSaveDescription = async () => {
-    const provider = training.dataProviders.find(dp => dp.user._id === user.userId);
+    const provider = training.dataProviders.find(
+      (dp) => dp.user._id.toString() === user.userId
+    );
     if (!provider) {
       alert('Data provider not found.');
       return;
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/federated-training/upload/${projectId}/${provider.datasetFolder}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user.userId, datasetDescription: updatedDescription }),
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/federated-training/upload/${projectId}/${provider.datasetFolder}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.userId,
+            datasetDescription: updatedDescription,
+          }),
+        }
+      );
 
       const data = await res.json();
 
@@ -204,7 +221,9 @@ const DataProviderDashboard = ({ user }) => {
     );
   }
 
-  const provider = training.dataProviders.find(dp => dp.user._id === user.userId);
+  const provider = training.dataProviders.find(
+    (dp) => dp.user._id.toString() === user.userId
+  );
 
   return (
     <div className="data-provider-dashboard">
@@ -227,7 +246,7 @@ const DataProviderDashboard = ({ user }) => {
         {provider ? (
           provider.datasetFolder ? (
             <div className="dataset-info">
-              <div>
+              <div className="info-left">
                 <p>
                   <strong>Dataset Folder:</strong> {provider.datasetFolder}
                 </p>
@@ -262,9 +281,17 @@ const DataProviderDashboard = ({ user }) => {
                   </div>
                 )}
               </div>
-              <button onClick={() => handleDelete(provider.datasetFolder)} className="delete-btn">
-                Delete Dataset
-              </button>
+              <div className="info-right">
+                <p>
+                  <strong>Files Uploaded:</strong> {provider.filesUploaded}
+                </p>
+                <button
+                  onClick={() => handleDelete(provider.datasetFolder)}
+                  className="delete-btn"
+                >
+                  Delete Dataset
+                </button>
+              </div>
             </div>
           ) : (
             <p>No dataset uploaded yet.</p>
@@ -283,6 +310,7 @@ const DataProviderDashboard = ({ user }) => {
               <input
                 type="file"
                 id="file-input"
+                key={fileInputKey}
                 onChange={handleFileChange}
                 accept="*"
               />
@@ -292,6 +320,7 @@ const DataProviderDashboard = ({ user }) => {
               <input
                 type="file"
                 id="folder-input"
+                key={folderInputKey}
                 webkitdirectory="true"
                 mozdirectory="true"
                 directory="true"

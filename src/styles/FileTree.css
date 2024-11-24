@@ -1,0 +1,32 @@
+/* src/styles/FileTree.css */
+
+.file-tree {
+    list-style-type: none;
+    padding-left: 20px;
+  }
+  
+  .file-tree li {
+    margin: 5px 0;
+  }
+  
+  .file-tree-node {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .folder-icon,
+  .file-icon {
+    margin-right: 8px;
+    color: #f0ad4e; /* Secondary color */
+  }
+  
+  .file-name {
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .file-tree li ul {
+    margin-left: 15px;
+  }
+  

@@ -1,0 +1,151 @@
+/* src/styles/Notebook.css */
+
+.notebook {
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.notebook-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.add-cell-buttons button {
+  margin-left: 0.5rem;
+}
+
+.add-cell-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.add-cell-btn:hover {
+  background-color: #0056b3;
+}
+
+.cell {
+  background-color: white;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.cell-controls {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.execute-btn,
+.delete-btn,
+.approve-btn,
+.reject-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.execute-btn.disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+}
+
+.approve-btn {
+  background-color: #28a745;
+}
+
+.reject-btn {
+  background-color: #dc3545;
+}
+
+.execute-btn:hover:not(.disabled),
+.delete-btn:hover,
+.approve-btn:hover,
+.reject-btn:hover {
+  opacity: 0.8;
+}
+
+.cell-output {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  white-space: pre-wrap;
+}
+
+.cell-error {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f8d7da;
+  border-radius: 4px;
+  color: #721c24;
+}
+
+.cell-rejection {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #fff3cd;
+  border-radius: 4px;
+  color: #856404;
+}
+
+.approved-label {
+  display: flex;
+  align-items: center;
+  color: #28a745;
+  font-weight: bold;
+}
+
+.approved-label .icon {
+  margin-right: 0.3rem;
+}
+
+.spinner {
+  animation: spin 2s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.markdown-cell {
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading .spinner {
+  margin-right: 0.5rem;
+}

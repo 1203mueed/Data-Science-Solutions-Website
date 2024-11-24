@@ -1,69 +1,131 @@
-// models/federatedTrainingModel.js
+// src/db/models/federatedTrainingModel.js
 
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid'); // Import UUID library
 
-// Define a generic file schema to handle any file type
-const fileSchema = new mongoose.Schema({
-  filename: { type: String, required: true },
-  filepath: { type: String, required: true },
-  uploadedAt: { type: Date, default: Date.now },
-});
+// Define Cell Schema
+const cellSchema = new mongoose.Schema({
+  cellId: { 
+    type: String, 
+    default: uuidv4, // Automatically generate UUID
+    unique: true, // Ensure uniqueness across all cells
+  },
+  type: { // 'code' or 'markdown'
+    type: String,
+    enum: ['code', 'markdown'],
+    required: true
+  },
+  code: { 
+    type: String, 
+    default: '' 
+  },
+  output: { 
+    type: String, 
+    default: '' 
+  },
+  status: { 
+    type: String, 
+    enum: ['pending', 'executing', 'executed', 'error'], 
+    default: 'pending' 
+  },
+  approved: { 
+    type: Boolean, 
+    default: true // Initially approved
+  },
+  rejectionReason: { 
+    type: String, 
+    default: '' 
+  },
+}, { _id: false });
 
-// Define the training session schema
+// Define Training Session Schema
 const trainingSessionSchema = new mongoose.Schema({
-  sessionName: { type: String, required: true }, // e.g., "Training Session 1"
-  notebookPath: { type: String, required: true }, // Path to the Jupyter notebook file
-  files: [fileSchema], // Uploaded files associated with this session
-  createdAt: { type: Date, default: Date.now },
+  trainingId: { // Unique identifier for the training session
+    type: mongoose.Schema.Types.ObjectId, // Use ObjectId for uniqueness
+    default: () => new mongoose.Types.ObjectId(), // Auto-generate an ObjectId
+  },
+  sessionName: { 
+    type: String, 
+    required: true 
+  },
+  notebookPath: { 
+    type: String, 
+    default: '' // No notebook path since it's not being uploaded
+  },
+  files: [
+    {
+      filename: { 
+        type: String, 
+        required: true 
+      },
+      filepath: { 
+        type: String, 
+        required: true 
+      },
+    }
+  ],
+  cells: { 
+    type: [cellSchema], 
+    default: [] 
+  },
+}, { 
+  timestamps: true,
 });
 
+// Define Data Provider Schema (for clarity and reuse)
 const dataProviderSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Data Provider User ID is required'],
+  user: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
   },
-  status: {
-    type: String,
-    enum: ['invited', 'accepted', 'rejected'],
-    default: 'invited',
+  status: { 
+    type: String, 
+    enum: ['invited', 'accepted', 'rejected'], 
+    default: 'invited' 
   },
-  datasetFolder: {
-    type: String,
-    trim: true,
-    default: '',
+  datasetFolder: { 
+    type: String, 
+    default: '' 
   },
-  datasetDescription: {
-    type: String,
-    trim: true,
-    default: '',
+  datasetDescription: { 
+    type: String, 
+    default: '' 
   },
-});
+}, { _id: false });
 
+// Define Federated Training Schema
 const federatedTrainingSchema = new mongoose.Schema({
-  projectName: {
-    type: String,
-    required: [true, 'Project name is required'],
-    trim: true,
+  projectName: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    trim: true // Trim whitespace
   },
-  modelTrainer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Model Trainer (User ID) is required'],
+  modelTrainer: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
   },
-  description: {
-    type: String,
-    trim: true,
-    default: '',
+  description: { 
+    type: String, 
+    default: '' 
   },
-  dataProviders: [dataProviderSchema],
-  trainingHistory: [trainingSessionSchema], // Array to store training sessions
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  dataProviders: { 
+    type: [dataProviderSchema], 
+    default: [] // Ensure dataProviders is always an array
   },
+  trainingHistory: { 
+    type: [trainingSessionSchema], 
+    default: [] // Ensure trainingHistory is always an array
+  },
+  projectFolder: { 
+    type: String, 
+    required: false 
+  },
+}, { 
+  timestamps: true 
 });
 
-const FederatedTraining = mongoose.model('FederatedTraining', federatedTrainingSchema);
-
-module.exports = FederatedTraining;
+// Export the model
+module.exports = mongoose.model('FederatedTraining', federatedTrainingSchema);

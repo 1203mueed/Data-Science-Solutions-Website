@@ -1,4 +1,5 @@
 // src/pages/ModelTrainerDashboard.js
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/ModelTrainerDashboard.css';
@@ -9,6 +10,7 @@ import {
   FaUserPlus, 
   FaPlus 
 } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const ModelTrainerDashboard = ({ user }) => {
   const { projectId } = useParams();
@@ -27,7 +29,7 @@ const ModelTrainerDashboard = ({ user }) => {
     const fetchTrainerProjectDetails = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/federated-training/projects/${projectId}/trainer-details?userId=${user.userId}`,
+          `http://localhost:5000/api/federated-training/${projectId}/trainer-details?userId=${user.userId}`,
           {
             method: 'GET',
             headers: {
@@ -38,15 +40,18 @@ const ModelTrainerDashboard = ({ user }) => {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('Fetched Trainer Project Details:', data); // Debugging
           setTrainerProjectDetails(data.trainerProjectDetails);
           setTrainingHistory(data.trainerProjectDetails.trainingHistory || []);
         } else {
           const errorData = await response.json();
           setError(errorData.error || 'Failed to fetch project details');
+          toast.error(errorData.error || 'Failed to fetch project details');
         }
       } catch (err) {
         console.error('Error fetching project details:', err);
         setError('An error occurred while fetching project details');
+        toast.error('An error occurred while fetching project details');
       } finally {
         setLoading(false);
       }
@@ -76,13 +81,13 @@ const ModelTrainerDashboard = ({ user }) => {
     setInviteSuccess('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/federated-training/invite', {
+      const res = await fetch(`http://localhost:5000/api/federated-training/${projectId}/invite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainingId: projectId,
+          projectId: projectId, // Correct key
           providerEmails: emails,
         }),
       });
@@ -94,12 +99,15 @@ const ModelTrainerDashboard = ({ user }) => {
         setTrainingHistory(data.training.trainingHistory || []);
         setInviteSuccess('Data providers invited successfully.');
         setNewProviderEmail('');
+        toast.success('Data providers invited successfully.');
       } else {
         setInviteError(data.error || 'Failed to invite data providers.');
+        toast.error(data.error || 'Failed to invite data providers.');
       }
     } catch (err) {
       console.error('Error inviting data providers:', err);
       setInviteError('An error occurred while inviting data providers.');
+      toast.error('An error occurred while inviting data providers.');
     } finally {
       setInviting(false);
     }
@@ -107,12 +115,11 @@ const ModelTrainerDashboard = ({ user }) => {
 
   const handleNewTraining = () => {
     navigate(`/model-trainer/dashboard/${projectId}/new-training`);
-  };  
+  };
 
   const handleTrainingClick = (trainingSessionId) => {
     navigate(`/model-trainer/dashboard/${projectId}/trainings/${trainingSessionId}`);
   };
-   
 
   if (loading) {
     return (
@@ -144,44 +151,51 @@ const ModelTrainerDashboard = ({ user }) => {
       {/* Section to Display Data Providers */}
       <section className="data-providers-section">
         <h3>Data Providers</h3>
-        {trainerProjectDetails.dataProviders.length === 0 ? (
+        {trainerProjectDetails.dataProviders && trainerProjectDetails.dataProviders.length === 0 ? (
           <p>No data providers invited for this project.</p>
         ) : (
           <div className="providers-list">
-            {trainerProjectDetails.dataProviders.map((provider, index) => (
-              <div key={index} className="provider-card">
-                <div className="provider-info">
-                  <p>
-                    <strong>Name:</strong> {provider.name || 'N/A'}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {provider.email || 'N/A'}
-                  </p>
-                  <p>
-                    <strong>Status:</strong>{' '}
-                    {provider.status === 'accepted' ? (
-                      <span className="status accepted">
-                        <FaCheckCircle /> Accepted
-                      </span>
-                    ) : provider.status === 'rejected' ? (
-                      <span className="status rejected">
-                        <FaTimesCircle /> Rejected
-                      </span>
-                    ) : (
-                      <span className="status invited">Invited</span>
+            {trainerProjectDetails.dataProviders &&
+              trainerProjectDetails.dataProviders.map((provider, index) => (
+                // Removed provider.user && condition
+                <div key={index} className="provider-card">
+                  <div className="provider-info">
+                    <p>
+                      <strong>Name:</strong> {provider.name || 'N/A'}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {provider.email || 'N/A'}
+                    </p>
+                    <p>
+                      <strong>Status:</strong>{' '}
+                      {provider.status === 'accepted' ? (
+                        <span className="status accepted">
+                          <FaCheckCircle /> Accepted
+                        </span>
+                      ) : provider.status === 'rejected' ? (
+                        <span className="status rejected">
+                          <FaTimesCircle /> Rejected
+                        </span>
+                      ) : (
+                        <span className="status invited">Invited</span>
+                      )}
+                    </p>
+                    <p>
+                      <strong>Files Uploaded:</strong> {provider.filesUploaded}
+                    </p>
+                    {provider.datasetDescription && (
+                      <div className="dataset-details">
+                        <p>
+                          <strong>Dataset Description:</strong>
+                        </p>
+                        <p className="dataset-description">
+                          {provider.datasetDescription || 'No description provided.'}
+                        </p>
+                      </div>
                     )}
-                  </p>
-                  {provider.datasetDescription && (
-                    <div className="dataset-details">
-                      <p>
-                        <strong>Dataset Description:</strong>
-                      </p>
-                      <p className="dataset-description">{provider.datasetDescription || 'No description provided.'}</p>
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
       </section>
@@ -225,15 +239,17 @@ const ModelTrainerDashboard = ({ user }) => {
         ) : (
           <div className="training-history-list">
             {trainingHistory.map((session) => (
-              <div
-                key={session._id}
-                className="training-session-card"
-                onClick={() => handleTrainingClick(session._id)}
-              >
-                <h4>{session.sessionName}</h4>
-                <p>Created At: {new Date(session.createdAt).toLocaleString()}</p>
-                {/* Add any additional details you want to display */}
-              </div>
+              session && (
+                <div
+                  key={session.trainingId}
+                  className="training-session-card"
+                  onClick={() => handleTrainingClick(session.trainingId)}
+                >
+                  <h4>{session.sessionName}</h4>
+                  <p>Created At: {new Date(session.createdAt).toLocaleString()}</p>
+                  {/* Add any additional details you want to display */}
+                </div>
+              )
             ))}
           </div>
         )}

@@ -1,4 +1,5 @@
-// server.js
+// src/server.js
+
 const express = require('express');
 const cors = require('cors');
 const connectToDatabase = require('../db/db');
@@ -8,7 +9,10 @@ const app = express();
 
 // Enable CORS
 app.use(cors());
+
+// Parse JSON and URL-encoded data
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files
 app.use('/UserImageUpload', express.static(path.join(__dirname, '../assets/UserImageUpload')));
@@ -25,6 +29,11 @@ const federatedTrainingRoutes = require('../api/federatedTrainingRoutes');
 app.use('/api/users', userRoutes);
 app.use('/api/datasets', datasetRoutes); // Use dataset routes
 app.use('/api/federated-training', federatedTrainingRoutes);
+
+// Handle undefined routes
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
 
 // Start the server
 const PORT = 5000;

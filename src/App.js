@@ -1,4 +1,5 @@
 // src/App.js
+
 import './styles/App.css';
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -29,6 +30,10 @@ import NewTrainingForm from './pages/NewTrainingForm';
 import TrainingSessionPage from './pages/TrainingSessionPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
+// Import ToastContainer
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function App() {
   const [user, setUser] = useState(null);
 
@@ -42,8 +47,19 @@ function App() {
 
   return (
     <Router>
-      <div id="root">
+      <div className="app-container">
         <Navbar user={user} setUser={setUser} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
         <div className="main-content">
           <Routes>
             {/* Public Routes */}

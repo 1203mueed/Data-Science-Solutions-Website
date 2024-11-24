@@ -1,111 +1,131 @@
 /* src/styles/TrainingSessionPage.css */
 
 .training-session-page {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    background-color: #f9f9f9;
-    min-height: 100vh;
+  padding: 2rem;
+  background-color: #ffffff;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.training-session-page header {
+  margin-bottom: 2rem;
+}
+
+.training-session-page header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.training-session-page header p {
+  color: #666;
+}
+
+.data-providers-section {
+  margin-bottom: 2rem;
+}
+
+.data-providers-section h2 {
+  color: var(--secondary-color);
+  margin-bottom: 1rem;
+}
+
+.data-provider-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.provider-details p {
+  margin: 5px 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.folder-structure {
+  margin-top: 1rem;
+}
+
+.folder-structure h3 {
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.files-section {
+  margin-top: 2rem;
+}
+
+.files-section h3 {
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+}
+
+.files-section ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.files-section li {
+  margin-bottom: 0.5rem;
+}
+
+.files-section a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.files-section a:hover {
+  text-decoration: underline;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.loader .spinner {
+  margin-right: 0.5rem;
+  animation: spin 2s linear infinite;
+}
+
+.error {
+  color: #dc3545;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .training-session-page {
+    padding: 1rem;
   }
-  
-  .training-session-page .top-section {
-    margin-bottom: 20px;
+
+  .data-provider-card {
+    padding: 0.8rem;
   }
-  
-  .training-session-page h2 {
-    font-size: 2em;
-    margin-bottom: 10px;
-    color: #333;
+
+  .training-session-page header h2 {
+    font-size: 1.8rem;
   }
-  
-  .training-session-page .data-providers-info {
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+
+  .data-providers-section h2 {
+    font-size: 1.5rem;
   }
-  
-  .training-session-page .data-providers-info h3 {
-    margin-bottom: 15px;
-    color: #444;
+
+  .folder-structure h3 {
+    font-size: 1.1rem;
   }
-  
-  .training-session-page .provider-info {
-    margin-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 10px;
-  }
-  
-  .training-session-page .provider-info:last-child {
-    border-bottom: none;
-  }
-  
-  .training-session-page .main-content {
-    display: flex;
-  }
-  
-  .training-session-page .sidebar {
-    width: 250px;
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-right: 20px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .training-session-page .sidebar h3 {
-    margin-bottom: 15px;
-    color: #444;
-  }
-  
-  .training-session-page .content-area {
-    flex: 1;
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* File Upload Button */
-  .training-session-page .upload-files-btn {
-    background-color: #4caf50;
-    color: #fff;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .training-session-page .upload-files-btn:hover {
-    background-color: #45a049;
-  }
-  
-  .training-session-page .files-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .training-session-page .files-list li {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .training-session-page .files-list li a {
-    text-decoration: none;
-    color: #1e88e5;
-    margin-left: 5px;
-  }
-  
-  .training-session-page .files-list li a:hover {
-    text-decoration: underline;
-  }
-  
+}
