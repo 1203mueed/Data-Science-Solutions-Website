@@ -36,9 +36,11 @@ def init_kernel():
             return jsonify({'message': 'Kernel already exists for this notebook.'}), 200
 
         try:
-            print(f"Initializing kernel for notebook: {notebook_path}", file=sys.stderr)
+            notebook_dir = os.path.dirname(os.path.abspath(notebook_path))
+            print(f"Initializing kernel for notebook: {notebook_path} with cwd: {notebook_dir}", file=sys.stderr)
+            
             km = KernelManager(kernel_name='python3')
-            km.start_kernel()
+            km.start_kernel(cwd=notebook_dir)  # Set the working directory to notebook's directory
             kc = km.client()
             kc.start_channels()
             kc.wait_for_ready(timeout=60)
@@ -94,7 +96,7 @@ def execute_cell_endpoint():
         if cell.cell_type != 'code':
             raise ValueError('Only code cells can be executed.')
         code = cell.source
-        print(f"Executing cell {cell_index}: {cell.source}", file=sys.stderr)
+        print(f"Executing cell {cell_index}: {code}", file=sys.stderr)
     except Exception as e:
         print(f"Error retrieving cell: {str(e)}", file=sys.stderr)
         return jsonify({'error': str(e)}), 400
