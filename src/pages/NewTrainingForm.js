@@ -10,14 +10,15 @@ const NewTrainingForm = ({ user }) => {
   const navigate = useNavigate();
 
   const [sessionName, setSessionName] = useState('');
+  const [notebookName, setNotebookName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleCreateTraining = async (e) => {
     e.preventDefault();
 
-    if (!sessionName.trim()) {
-      setError('Session name is required.');
+    if (!sessionName.trim() || !notebookName.trim()) {
+      setError('Session name and notebook name are required.');
       return;
     }
 
@@ -32,6 +33,7 @@ const NewTrainingForm = ({ user }) => {
         },
         body: JSON.stringify({
           sessionName: sessionName.trim(),
+          notebookName: notebookName.trim(),
           userId: user.userId,
         }),
       });
@@ -67,6 +69,17 @@ const NewTrainingForm = ({ user }) => {
             onChange={(e) => setSessionName(e.target.value)}
             required
             placeholder="Enter training session name"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="notebookName">Notebook Name:</label>
+          <input
+            type="text"
+            id="notebookName"
+            value={notebookName}
+            onChange={(e) => setNotebookName(e.target.value)}
+            required
+            placeholder="Enter notebook name (e.g., 'MyNotebook')"
           />
         </div>
         {error && <p className="error">{error}</p>}

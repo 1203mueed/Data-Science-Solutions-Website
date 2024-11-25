@@ -5,9 +5,12 @@ const User = require('../db/models/userModel');
 const { v4: uuidv4 } = require('uuid'); // Import UUID
 const path = require('path');
 const fs = require('fs').promises;
-const { startKernel, executeCode, stopKernel } = require('./kernelManager');
 const mongoose = require('mongoose');
-const formidable = require('formidable'); // Add this line
+const { spawn } = require('child_process');
+const axios = require('axios');
+
+// URL of the Python Kernel Server
+const kernelServerURL = 'http://localhost:5001';
 
 /**
  * Recursively build the folder structure
@@ -91,10 +94,6 @@ const getFolderStructure = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
-
-
-
-
 
 /**
  * Get federated trainings for a user, both as a trainer and as a provider.
@@ -397,7 +396,6 @@ const uploadDatasetFolder = async (req, res) => {
   }
 };
 
-
 /**
  * Update dataset description for a data provider.
  */
@@ -523,6 +521,7 @@ const deleteDatasetFolder = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 /**
  * Count files in a dataset folder.
  */
@@ -675,10 +674,10 @@ const getTrainerProjectDetails = async (req, res) => {
  */
 const createTrainingSession = async (req, res) => {
   const { projectId } = req.params;
-  const { sessionName, userId } = req.body;
+  const { sessionName, notebookName, userId } = req.body;
 
-  if (!sessionName || !userId) {
-    return res.status(400).json({ error: 'Session name and user ID are required.' });
+  if (!sessionName || !notebookName || !userId) {
+    return res.status(400).json({ error: 'Session name, notebook name, and user ID are required.' });
   }
 
   try {
@@ -705,12 +704,42 @@ const createTrainingSession = async (req, res) => {
     const newSession = {
       trainingId: new mongoose.Types.ObjectId(), // Ensure unique trainingId
       sessionName: sessionName.trim(),
-      notebookPath: '', // No notebook path since it's not being uploaded
+      notebookName: notebookName.trim(),
+      notebookPath: '', // Will be set after creating the notebook file
       cells: [], // Initialize with empty cells
       files: [],
       createdAt: new Date(),
     };
 
+    // Create the notebook file in the project directory
+    const projectFolderPath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder
+    );
+
+    // Ensure the project directory exists
+    await fs.mkdir(projectFolderPath, { recursive: true });
+
+    // Generate the notebook file name and path
+    const notebookFileName = `${newSession.trainingId}_${newSession.notebookName}.ipynb`;
+    const notebookFilePath = path.join(projectFolderPath, notebookFileName);
+
+    // Initialize an empty notebook structure
+    const nb = {
+      cells: [],
+      metadata: {},
+      nbformat: 4,
+      nbformat_minor: 5,
+    };
+
+    // Write the notebook file
+    await fs.writeFile(notebookFilePath, JSON.stringify(nb, null, 2));
+
+    // Update notebookPath in the training session
+    newSession.notebookPath = notebookFileName;
+
+    // Add the new session to the training history
     federatedTraining.trainingHistory.push(newSession);
     await federatedTraining.save();
 
@@ -727,8 +756,6 @@ const createTrainingSession = async (req, res) => {
 /**
  * Upload additional files to a training session.
  */
-// federatedTrainingController.js
-
 const uploadFilesToTraining = async (req, res) => {
   const { projectId, trainingId } = req.params;
   const files = req.files;
@@ -744,7 +771,9 @@ const uploadFilesToTraining = async (req, res) => {
       return res.status(404).json({ error: 'Project not found.' });
     }
 
-    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+    const trainingSession = federatedTraining.trainingHistory.find(
+      (session) => session.trainingId.toString() === trainingId
+    );
 
     if (!trainingSession) {
       return res.status(404).json({ error: 'Training session not found.' });
@@ -800,13 +829,15 @@ const downloadFileFromTraining = async (req, res) => {
       return res.status(404).json({ error: 'Project not found.' });
     }
 
-    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+    const trainingSession = federatedTraining.trainingHistory.find(
+      (session) => session.trainingId.toString() === trainingId
+    );
 
     if (!trainingSession) {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
-    const file = trainingSession.files.id(fileId);
+    const file = trainingSession.files.find((f) => f._id.toString() === fileId);
 
     if (!file) {
       return res.status(404).json({ error: 'File not found.' });
@@ -851,14 +882,15 @@ const listTrainingHistory = async (req, res) => {
     }
 
     const trainingHistory = federatedTraining.trainingHistory.map((session) => ({
-      trainingId: session._id, // Use Mongoose `_id` as trainingId
+      trainingId: session.trainingId, // Use session.trainingId
       sessionName: session.sessionName,
+      createdAt: session.createdAt,
     }));
 
     res.status(200).json({ trainingHistory });
   } catch (error) {
     console.error('Error listing training history:', error.message);
-    res.status(500).json({ error: 'Internal server error.' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
@@ -1009,6 +1041,7 @@ const getTrainingSessionDetails = async (req, res) => {
       trainingSession: {
         trainingId: trainingSession.trainingId,
         sessionName: trainingSession.sessionName,
+        notebookName: trainingSession.notebookName,
         notebookPath: trainingSession.notebookPath,
         files: trainingSession.files,
         cells: Array.isArray(cells) ? cells : [],
@@ -1049,8 +1082,9 @@ const addCell = async (req, res) => {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
+    const newCellId = uuidv4(); // Generate a unique UUID
     const newCell = {
-      cellId: new mongoose.Types.ObjectId(),
+      cellId: newCellId,
       type,
       code: '',
       output: '',
@@ -1060,11 +1094,77 @@ const addCell = async (req, res) => {
     };
 
     trainingSession.cells.push(newCell);
+
+    // Get the notebook file path
+    const notebookFilePath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder,
+      trainingSession.notebookPath
+    );
+
+    // Load the notebook
+    let nb;
+    try {
+      const nbContent = await fs.readFile(notebookFilePath, 'utf-8');
+      nb = JSON.parse(nbContent);
+    } catch (err) {
+      // If notebook doesn't exist, create a new one
+      nb = {
+        cells: [],
+        metadata: {},
+        nbformat: 4,
+        nbformat_minor: 5,
+      };
+    }
+
+    // Add the new cell to the notebook with an 'id' field
+    nb.cells.push({
+      cell_type: type,
+      source: '',
+      metadata: { id: newCellId }, // Assign the UUID as the 'id'
+      outputs: [],
+      execution_count: null,
+    });
+
+    // Save the updated notebook
+    await fs.writeFile(notebookFilePath, JSON.stringify(nb, null, 2));
+
     await federatedTraining.save();
 
     res.status(201).json({ cell: newCell });
   } catch (error) {
     console.error('Error adding cell:', error.message);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+/**
+ * Get all cells in a training session.
+ */
+const getCells = async (req, res) => {
+  const { projectId, trainingId } = req.params;
+
+  try {
+    const federatedTraining = await FederatedTraining.findById(projectId);
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    const trainingSession = federatedTraining.trainingHistory.find(
+      (session) => session.trainingId.toString() === trainingId
+    );
+
+    if (!trainingSession) {
+      return res.status(404).json({ error: 'Training session not found.' });
+    }
+
+    const cells = trainingSession.cells || [];
+
+    res.status(200).json({ cells });
+  } catch (error) {
+    console.error('Error fetching cells:', error.message);
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
@@ -1082,24 +1182,71 @@ const approveCell = async (req, res) => {
       return res.status(404).json({ error: 'Project not found.' });
     }
 
-    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+    const trainingSession = federatedTraining.trainingHistory.find(
+      (session) => session.trainingId.toString() === trainingId
+    );
 
     if (!trainingSession) {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
-    const cell = trainingSession.cells.find((c) => c.cellId === cellId); // Removed parseInt
+    const cell = trainingSession.cells.find((c) => c.cellId.toString() === cellId);
 
     if (!cell) {
       return res.status(404).json({ error: 'Cell not found.' });
     }
 
-    if (cell.type !== 'code') {
-      return res.status(400).json({ error: 'Only code cells can be approved.' });
+    if (cell.type !== 'code' && cell.type !== 'markdown') {
+      return res.status(400).json({ error: 'Invalid cell type.' });
     }
 
     cell.approved = true;
     cell.rejectionReason = '';
+
+    // Update the notebook file
+    const projectFolderPath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder
+    );
+    const notebookFilePath = path.join(projectFolderPath, trainingSession.notebookPath);
+
+    // Read existing notebook
+    let notebook;
+    try {
+      const nbContent = await fs.readFile(notebookFilePath, 'utf-8');
+      notebook = JSON.parse(nbContent);
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to read notebook file.' });
+    }
+
+    // Find the notebook cell by cellId
+    const nbCellIndex = notebook.cells.findIndex(
+      (c) => c.metadata && c.metadata.id === cell.cellId.toString()
+    );
+
+    if (nbCellIndex !== -1) {
+      // Update the cell type and clear outputs if needed
+      notebook.cells[nbCellIndex].cell_type = cell.type;
+      if (cell.type === 'code') {
+        notebook.cells[nbCellIndex].outputs = [];
+        notebook.cells[nbCellIndex].execution_count = null;
+      }
+    } else {
+      // If cell not found in notebook, append it
+      const newNotebookCell = {
+        cell_type: cell.type,
+        source: cell.code,
+        metadata: { id: cell.cellId.toString() }, // Assign the cellId as the 'id'
+        outputs: cell.type === 'code' ? [] : undefined,
+        execution_count: cell.type === 'code' ? null : undefined,
+      };
+      notebook.cells.push(newNotebookCell);
+    }
+
+    // Save the updated notebook back to file
+    await fs.writeFile(notebookFilePath, JSON.stringify(notebook, null, 2));
+
     await federatedTraining.save();
 
     res.status(200).json({ message: 'Cell approved successfully.', cell });
@@ -1127,13 +1274,15 @@ const rejectCell = async (req, res) => {
       return res.status(404).json({ error: 'Project not found.' });
     }
 
-    const trainingSession = federatedTraining.trainingHistory.id(trainingId);
+    const trainingSession = federatedTraining.trainingHistory.find(
+      (session) => session.trainingId.toString() === trainingId
+    );
 
     if (!trainingSession) {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
-    const cell = trainingSession.cells.find((c) => c.cellId === cellId); // Removed parseInt
+    const cell = trainingSession.cells.find((c) => c.cellId.toString() === cellId);
 
     if (!cell) {
       return res.status(404).json({ error: 'Cell not found.' });
@@ -1193,7 +1342,6 @@ const deleteCell = async (req, res) => {
   }
 };
 
-
 /**
  * Update a cell's code in a training session.
  */
@@ -1232,6 +1380,41 @@ const updateCell = async (req, res) => {
     cell.status = 'pending';
     cell.output = '';
 
+    // Get the notebook file path
+    const notebookFilePath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder,
+      trainingSession.notebookPath
+    );
+
+    // Load the notebook
+    let nb;
+    try {
+      const nbContent = await fs.readFile(notebookFilePath, 'utf-8');
+      nb = JSON.parse(nbContent);
+    } catch (err) {
+      // If notebook doesn't exist, create a new one
+      nb = {
+        cells: [],
+        metadata: {},
+        nbformat: 4,
+        nbformat_minor: 5,
+      };
+    }
+
+    // Update the cell in the notebook
+    const nbCellIndex = nb.cells.findIndex(
+      (c) => c.metadata && c.metadata.id === cell.cellId.toString()
+    );
+
+    if (nbCellIndex !== -1) {
+      nb.cells[nbCellIndex].source = newCode;
+    }
+
+    // Save the updated notebook
+    await fs.writeFile(notebookFilePath, JSON.stringify(nb, null, 2));
+
     await federatedTraining.save();
 
     res.status(200).json({ message: 'Cell updated successfully.' });
@@ -1250,12 +1433,14 @@ const executeCell = async (req, res) => {
   const { projectId, trainingId, cellId } = req.params;
 
   try {
+    // Fetch the federated training project
     const federatedTraining = await FederatedTraining.findById(projectId);
 
     if (!federatedTraining) {
       return res.status(404).json({ error: 'Project not found.' });
     }
 
+    // Find the specific training session
     const trainingSession = federatedTraining.trainingHistory.find(
       (session) => session.trainingId.toString() === trainingId
     );
@@ -1264,9 +1449,8 @@ const executeCell = async (req, res) => {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
-    const cell = trainingSession.cells.find(
-      (c) => c.cellId.toString() === cellId
-    );
+    // Find the specific cell to execute
+    const cell = trainingSession.cells.find((c) => c.cellId.toString() === cellId);
 
     if (!cell) {
       return res.status(404).json({ error: 'Cell not found.' });
@@ -1284,28 +1468,67 @@ const executeCell = async (req, res) => {
       return res.status(400).json({ error: 'Cannot execute empty code.' });
     }
 
-    // Get the project directory path
-    const projectDirPath = path.join(
-      __dirname,
-      '../assets/DatasetUploads',
-      federatedTraining.projectFolder
-    );
-
-    // Execute the code using kernelManager
-    const output = await executeCode(
-      projectId,
-      trainingId,
-      cell.code,
-      projectDirPath // Pass the project directory path
-    );
-
-    // Update cell status and output
-    cell.output = output.output;
-    cell.status = output.error ? 'error' : 'executed';
-
+    // Update cell status to 'executing'
+    cell.status = 'executing';
+    cell.output = 'Executing...';
     await federatedTraining.save();
 
-    res.status(200).json({ output: cell.output, error: output.error });
+    // Define the notebook path
+    const notebookFilePath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder,
+      trainingSession.notebookPath
+    );
+
+    // Find the cell index based on cellId
+    const cellIndex = trainingSession.cells.findIndex(c => c.cellId.toString() === cellId);
+    if (cellIndex === -1) {
+      return res.status(404).json({ error: 'Cell index not found.' });
+    }
+
+    // Initialize the kernel for the notebook if not already initialized
+    try {
+      await axios.post(`${kernelServerURL}/init_kernel`, {
+        notebook_path: notebookFilePath,
+      });
+    } catch (error) {
+      // If the kernel is already initialized, the server responds with a 200 or 409 status
+      if (error.response && (error.response.status !== 200 && error.response.status !== 409)) {
+        console.error('Error initializing kernel:', error.message);
+        cell.status = 'error';
+        cell.output = 'Error initializing kernel.';
+        await federatedTraining.save();
+        return res.status(500).json({ error: 'Error initializing kernel.' });
+      }
+    }
+
+    // Execute the cell
+    try {
+      const response = await axios.post(`${kernelServerURL}/execute_cell`, {
+        notebook_path: notebookFilePath,
+        cell_index: cellIndex,
+      });
+
+      const { outputs } = response.data;
+
+      // Update the cell's output and status
+      cell.output = outputs.join('\n') || '';
+      cell.status = 'executed';
+
+      await federatedTraining.save();
+      return res.status(200).json({ output: cell.output, error: null });
+
+    } catch (error) {
+      console.error('Error executing cell:', error.response ? error.response.data : error.message);
+      cell.status = 'error';
+      cell.output = error.response && error.response.data && error.response.data.error
+        ? error.response.data.error
+        : 'Error executing cell.';
+      await federatedTraining.save();
+      return res.status(500).json({ error: 'Error executing cell.', details: cell.output });
+    }
+
   } catch (error) {
     console.error('Error executing cell:', error.message);
     res.status(500).json({ error: 'Internal server error.' });
@@ -1313,21 +1536,55 @@ const executeCell = async (req, res) => {
 };
 
 
-/**
- * Clean up kernel when training session is deleted or no longer needed.
- * (Implement this controller as needed)
- */
-const cleanupKernel = async (req, res) => {
+// controllers/federatedTrainingController.js
+
+const shutdownKernel = async (req, res) => {
   const { projectId, trainingId } = req.params;
 
   try {
-    stopKernel(projectId, trainingId);
-    res.status(200).json({ message: 'Kernel stopped successfully.' });
-  } catch (err) {
-    console.error('Error stopping kernel:', err.message);
+    const federatedTraining = await FederatedTraining.findById(projectId);
+
+    if (!federatedTraining) {
+      return res.status(404).json({ error: 'Project not found.' });
+    }
+
+    const trainingSession = federatedTraining.trainingHistory.find(
+      (session) => session.trainingId.toString() === trainingId
+    );
+
+    if (!trainingSession) {
+      return res.status(404).json({ error: 'Training session not found.' });
+    }
+
+    // Define the notebook path
+    const notebookFilePath = path.join(
+      __dirname,
+      '../assets/DatasetUploads',
+      federatedTraining.projectFolder,
+      trainingSession.notebookPath
+    );
+
+    // Shutdown the kernel
+    try {
+      const response = await axios.post(`${kernelServerURL}/shutdown_kernel`, {
+        notebook_path: notebookFilePath,
+      });
+
+      // Update training session status if needed
+      // ...
+
+      return res.status(200).json({ message: 'Kernel shutdown successfully.' });
+    } catch (error) {
+      console.error('Error shutting down kernel:', error.response ? error.response.data : error.message);
+      return res.status(500).json({ error: 'Error shutting down kernel.' });
+    }
+
+  } catch (error) {
+    console.error('Error shutting down kernel:', error.message);
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
+
 
 /**
  * Export all controller functions.
@@ -1353,10 +1610,11 @@ module.exports = {
   getFolderStructure,
 
   addCell,
+  getCells,
   approveCell,
   deleteCell,
   rejectCell,
   executeCell,
-  cleanupKernel,
   updateCell,
+  shutdownKernel
 };

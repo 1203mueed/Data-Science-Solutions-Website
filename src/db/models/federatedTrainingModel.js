@@ -30,7 +30,7 @@ const cellSchema = new mongoose.Schema({
   },
   approved: { 
     type: Boolean, 
-    default: true // Initially approved
+    default: false // Initially not approved
   },
   rejectionReason: { 
     type: String, 
@@ -48,9 +48,13 @@ const trainingSessionSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+  notebookName: { // New field to store the notebook name
+    type: String, 
+    required: true 
+  },
   notebookPath: { 
     type: String, 
-    default: '' // No notebook path since it's not being uploaded
+    default: '' // Path to the notebook file
   },
   files: [
     {

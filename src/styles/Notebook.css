@@ -86,20 +86,24 @@
   opacity: 0.8;
 }
 
-.cell-output {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background-color: #e9ecef;
+.cell-error {
+  background-color: #ffe6e6;
+  color: #cc0000;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #cc0000;
   border-radius: 4px;
-  white-space: pre-wrap;
+  font-family: monospace;
 }
 
-.cell-error {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background-color: #f8d7da;
+.cell-output {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  color: #721c24;
+  font-family: monospace;
 }
 
 .cell-rejection {

@@ -1,8 +1,13 @@
+// src/routes/federatedTrainingRoutes.js
+
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+
+// Import FederatedTraining
+const FederatedTraining = require('../db/models/federatedTrainingModel');
 
 const {
   getFederatedTrainings,
@@ -16,18 +21,19 @@ const {
   countFilesInFolder,
   getTrainerProjectDetails,
   createTrainingSession,
-  uploadFilesToTraining,
-  downloadFileFromTraining,
   listTrainingHistory,
   getTrainingSessionDetails,
+  uploadFilesToTraining,
+  downloadFileFromTraining,
   getFolderStructure,
   addCell,
+  getCells,
   approveCell,
   rejectCell,
   deleteCell,
   executeCell,
-  cleanupKernel,
   updateCell,
+  shutdownKernel,
 } = require('../controllers/federatedTrainingController'); // Adjust the path as necessary
 
 // Configure Multer to use a temporary upload directory
@@ -89,7 +95,6 @@ router.post(
 );
 
 
-
 // Existing Routes
 router.get('/', getFederatedTrainings);
 router.post('/create', createFederatedTraining);
@@ -142,6 +147,9 @@ router.get(
 // Add a new cell
 router.post('/:projectId/trainings/:trainingId/cells', addCell);
 
+// Get all cells in a training session
+router.get('/:projectId/trainings/:trainingId/cells', getCells);
+
 // Approve a cell
 router.post('/:projectId/trainings/:trainingId/cells/:cellId/approve', approveCell);
 
@@ -154,11 +162,11 @@ router.delete('/:projectId/trainings/:trainingId/cells/:cellId', deleteCell);
 // Update a cell
 router.put('/:projectId/trainings/:trainingId/cells/:cellId', updateCell);
 
-// Execute a cell
+// Define the execute cell route
 router.post('/:projectId/trainings/:trainingId/cells/:cellId/execute', executeCell);
 
-// Cleanup Kernel (Optional)
-router.post('/:projectId/trainings/:trainingId/cleanup-kernel', cleanupKernel);
+// Define the shutdown kernel route
+router.post('/:projectId/trainings/:trainingId/shutdown_kernel', shutdownKernel);
 
 // ----- End of New Routes for Cell Management -----
 

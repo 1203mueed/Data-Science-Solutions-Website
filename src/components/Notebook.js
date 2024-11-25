@@ -15,26 +15,23 @@ import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/python/python';
 import ReactMarkdown from 'react-markdown';
 
-const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
+const Notebook = ({ projectId, trainingId, user }) => {
+  const [cells, setCells] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [localCells, setLocalCells] = useState([]);
 
-  // Fetch initial cells if not provided
+  // Fetch initial cells
   useEffect(() => {
     const fetchCells = async () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}`
+          `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/cells`
         );
         const data = await response.json();
 
         if (response.ok) {
-          const fetchedCells = Array.isArray(data.trainingSession.cells)
-            ? data.trainingSession.cells
-            : [];
+          const fetchedCells = Array.isArray(data.cells) ? data.cells : [];
           setCells(fetchedCells);
-          setLocalCells(fetchedCells);
         } else {
           throw new Error(data.error || 'Failed to fetch cells.');
         }
@@ -46,19 +43,15 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
       }
     };
 
-    if (!Array.isArray(cells) || cells.length === 0) {
-      fetchCells();
-    } else {
-      setLocalCells(cells);
-    }
-  }, [projectId, trainingId, setCells]);
+    fetchCells();
+  }, [projectId, trainingId]);
 
   /**
    * Handle updating the cell code locally.
    * Does NOT send a PUT request to the backend.
    */
   const handleLocalCodeChange = (cellId, newCode) => {
-    setLocalCells((prevCells) =>
+    setCells((prevCells) =>
       prevCells.map((c) =>
         c.cellId === cellId
           ? { ...c, code: newCode, status: 'pending', output: '' }
@@ -72,7 +65,7 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
    * Updates the backend with the latest code before execution.
    */
   const handleExecuteCell = async (cellId) => {
-    const cell = localCells.find((c) => c.cellId === cellId);
+    const cell = cells.find((c) => c.cellId === cellId);
     if (!cell) {
       return toast.error('Cell not found.');
     }
@@ -91,7 +84,7 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
 
     try {
       // Update cell status to 'executing' locally
-      setLocalCells((prevCells) =>
+      setCells((prevCells) =>
         prevCells.map((c) =>
           c.cellId === cellId
             ? { ...c, status: 'executing', output: 'Executing...' }
@@ -130,53 +123,40 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
 
       if (executeResponse.ok) {
         if (executeData.error) {
-          // Handle execution error
-          setLocalCells((prevCells) =>
+          // Handle execution error by setting cell output and status
+          setCells((prevCells) =>
             prevCells.map((c) =>
               c.cellId === cellId
                 ? { ...c, output: executeData.error, status: 'error' }
                 : c
             )
           );
-          toast.error(`Execution Error: ${executeData.error}`);
+          // No toast pop-up for errors
         } else {
-          // Handle successful execution
-          setLocalCells((prevCells) =>
+          // Handle successful execution by setting cell output and status
+          setCells((prevCells) =>
             prevCells.map((c) =>
               c.cellId === cellId
                 ? { ...c, output: executeData.output, status: 'executed' }
                 : c
             )
           );
-          toast.success('Cell executed successfully.');
+          // Optionally, keep the success toast
+          // toast.success('Cell executed successfully.');
         }
       } else {
         throw new Error(executeData.error || 'Execution failed.');
       }
-
-      // Sync localCells with the backend
-      setCells((prevCells) =>
-        prevCells.map((c) =>
-          c.cellId === cellId
-            ? {
-                ...c,
-                code: c.code,
-                output: executeData.output || c.output,
-                status: executeData.error ? 'error' : 'executed',
-              }
-            : c
-        )
-      );
     } catch (err) {
       console.error('Error executing cell:', err.message);
-      setLocalCells((prevCells) =>
+      setCells((prevCells) =>
         prevCells.map((c) =>
           c.cellId === cellId
             ? { ...c, output: 'Execution failed.', status: 'error' }
             : c
         )
       );
-      toast.error(err.message || 'Error executing cell.');
+      // No toast pop-up for errors
     }
   };
 
@@ -197,8 +177,7 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setLocalCells((prevCells) => [...prevCells, data.cell]);
-        setCells((prevCells) => [...prevCells, data.cell]); // Sync with global state
+        setCells((prevCells) => [...prevCells, data.cell]);
         toast.success(`New ${type} cell added successfully.`);
       } else {
         const errorData = await response.json();
@@ -222,8 +201,7 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
       );
 
       if (response.ok) {
-        setLocalCells((prevCells) => prevCells.filter((c) => c.cellId !== cellId));
-        setCells((prevCells) => prevCells.filter((c) => c.cellId !== cellId)); // Sync with global state
+        setCells((prevCells) => prevCells.filter((c) => c.cellId !== cellId));
         toast.success('Cell deleted successfully.');
       } else {
         const errorData = await response.json();
@@ -251,20 +229,13 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
       const data = await response.json();
 
       if (response.ok) {
-        setLocalCells((prevCells) =>
-          prevCells.map((c) =>
-            c.cellId === cellId
-              ? { ...c, approved: true, rejectionReason: '' }
-              : c
-          )
-        );
         setCells((prevCells) =>
           prevCells.map((c) =>
             c.cellId === cellId
               ? { ...c, approved: true, rejectionReason: '' }
               : c
           )
-        ); // Sync with global state
+        );
         toast.success('Cell approved.');
       } else {
         throw new Error(data.error || 'Failed to approve cell.');
@@ -296,20 +267,13 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
       const data = await response.json();
 
       if (response.ok) {
-        setLocalCells((prevCells) =>
-          prevCells.map((c) =>
-            c.cellId === cellId
-              ? { ...c, approved: false, rejectionReason: reason.trim() }
-              : c
-          )
-        );
         setCells((prevCells) =>
           prevCells.map((c) =>
             c.cellId === cellId
               ? { ...c, approved: false, rejectionReason: reason.trim() }
               : c
           )
-        ); // Sync with global state
+        );
         toast.success('Cell rejected.');
       } else {
         throw new Error(data.error || 'Failed to reject cell.');
@@ -441,8 +405,8 @@ const Notebook = ({ projectId, trainingId, cells = [], setCells, user }) => {
         <div className="loading">
           <FaSpinner className="spinner" /> Loading...
         </div>
-      ) : Array.isArray(localCells) && localCells.length > 0 ? (
-        localCells.map((cell) => renderCell(cell))
+      ) : cells.length > 0 ? (
+        cells.map((cell) => renderCell(cell))
       ) : (
         <p>No cells available. Add one to get started!</p>
       )}

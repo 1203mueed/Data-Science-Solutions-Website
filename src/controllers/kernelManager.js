@@ -13,6 +13,8 @@ const kernels = {};
  * @param {String} projectDirPath - Absolute path to the project directory
  * @returns {ChildProcess}
  */
+// kernelManager.js
+
 const startKernel = (projectId, trainingId, projectDirPath) => {
   const sessionKey = `${projectId}_${trainingId}`;
 
@@ -23,7 +25,19 @@ const startKernel = (projectId, trainingId, projectDirPath) => {
 
   const replScriptPath = path.join(__dirname, 'repl_server.py');
 
-  const pythonProcess = spawn('python', [replScriptPath], {
+  // Hardcoded Python executable path
+  const pythonExecutable = 'C:/Users/abdul/AppData/Local/Programs/Python/Python312/python.exe'; // Use forward slashes
+
+  console.log(`Using hardcoded PYTHON_EXECUTABLE for session ${sessionKey}: ${pythonExecutable}`);
+
+  // Verify that the Python executable exists
+  const fs = require('fs');
+  if (!fs.existsSync(pythonExecutable)) {
+    throw new Error(`Python executable not found at path: ${pythonExecutable}`);
+  }
+
+  // Add '-u' flag for unbuffered I/O
+  const pythonProcess = spawn(pythonExecutable, ['-u', replScriptPath], {
     cwd: projectDirPath, // Set the cwd to the project directory
     stdio: ['pipe', 'pipe', 'pipe'],
   });
@@ -37,7 +51,7 @@ const startKernel = (projectId, trainingId, projectDirPath) => {
   });
 
   pythonProcess.stdout.on('data', (data) => {
-    // Handle stdout data if needed
+    // Optionally handle server messages
   });
 
   pythonProcess.on('close', (code) => {
@@ -73,6 +87,9 @@ const executeCode = (projectId, trainingId, code, projectDirPath) => {
     const codeBuffer = Buffer.from(code, 'utf-8');
     const lengthBuffer = Buffer.from(`${codeBuffer.length}\n`, 'utf-8');
 
+    // Log the code being sent
+    console.log(`Sending code to kernel ${sessionKey}: ${code.trim()}`);
+
     // Send the length and then the code
     kernel.stdin.write(lengthBuffer);
     kernel.stdin.write(codeBuffer);
@@ -81,54 +98,55 @@ const executeCode = (projectId, trainingId, code, projectDirPath) => {
     let error = '';
     let state = 'reading_output_length';
     let bytesToRead = 0;
+    let bufferedData = '';
 
     const onData = (data) => {
-      const dataStr = data.toString();
-      let remaining = dataStr;
+      bufferedData += data.toString();
 
-      while (remaining.length > 0) {
+      while (bufferedData.length > 0) {
         if (state === 'reading_output_length') {
-          const newlineIndex = remaining.indexOf('\n');
+          const newlineIndex = bufferedData.indexOf('\n');
           if (newlineIndex === -1) {
             // Incomplete length
             return;
           }
-          const lengthStr = remaining.slice(0, newlineIndex);
+          const lengthStr = bufferedData.slice(0, newlineIndex);
           bytesToRead = parseInt(lengthStr, 10);
-          remaining = remaining.slice(newlineIndex + 1);
+          bufferedData = bufferedData.slice(newlineIndex + 1);
           state = 'reading_output';
         } else if (state === 'reading_output') {
-          if (remaining.length < bytesToRead) {
-            output += remaining;
-            bytesToRead -= remaining.length;
-            remaining = '';
+          if (bufferedData.length < bytesToRead) {
+            output += bufferedData;
+            bytesToRead -= bufferedData.length;
+            bufferedData = '';
             return;
           }
-          output += remaining.slice(0, bytesToRead);
-          remaining = remaining.slice(bytesToRead);
+          output += bufferedData.slice(0, bytesToRead);
+          bufferedData = bufferedData.slice(bytesToRead);
           state = 'reading_error_length';
         } else if (state === 'reading_error_length') {
-          const newlineIndex = remaining.indexOf('\n');
+          const newlineIndex = bufferedData.indexOf('\n');
           if (newlineIndex === -1) {
             // Incomplete length
             return;
           }
-          const lengthStr = remaining.slice(0, newlineIndex);
+          const lengthStr = bufferedData.slice(0, newlineIndex);
           bytesToRead = parseInt(lengthStr, 10);
-          remaining = remaining.slice(newlineIndex + 1);
+          bufferedData = bufferedData.slice(newlineIndex + 1);
           state = 'reading_error';
         } else if (state === 'reading_error') {
-          if (remaining.length < bytesToRead) {
-            error += remaining;
-            bytesToRead -= remaining.length;
-            remaining = '';
+          if (bufferedData.length < bytesToRead) {
+            error += bufferedData;
+            bytesToRead -= bufferedData.length;
+            bufferedData = '';
             return;
           }
-          error += remaining.slice(0, bytesToRead);
-          remaining = remaining.slice(bytesToRead);
+          error += bufferedData.slice(0, bytesToRead);
+          bufferedData = bufferedData.slice(bytesToRead);
           state = 'done';
           // Cleanup: remove listener after receiving complete response
           kernel.stdout.removeListener('data', onData);
+          console.log(`Received from kernel ${sessionKey} - Output: "${output.trim()}", Error: "${error.trim()}"`);
           resolve({ output: output.trim(), error: error.trim() });
           return;
         }
@@ -165,6 +183,7 @@ const executeCode = (projectId, trainingId, code, projectDirPath) => {
     };
   });
 };
+
 
 /**
  * Stop the Python REPL server for a given training session.
