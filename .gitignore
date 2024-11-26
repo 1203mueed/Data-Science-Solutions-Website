@@ -22,3 +22,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Specific .env file in src/servers directory 
+src/servers/.env
