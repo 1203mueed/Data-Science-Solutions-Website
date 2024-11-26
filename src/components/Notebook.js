@@ -5,7 +5,6 @@ import {
   FaTrash,
   FaPlay,
   FaPlus,
-  FaCheckCircle,
   FaSpinner,
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -47,10 +46,10 @@ const Notebook = ({ projectId, trainingId, user }) => {
   }, [projectId, trainingId]);
 
   /**
-   * Handle updating the cell code locally.
-   * Does NOT send a PUT request to the backend.
+   * Handle updating the cell code both locally and on the backend.
    */
-  const handleLocalCodeChange = (cellId, newCode) => {
+  const handleLocalCodeChange = async (cellId, newCode) => {
+    // Optimistically update the local state
     setCells((prevCells) =>
       prevCells.map((c) =>
         c.cellId === cellId
@@ -58,11 +57,41 @@ const Notebook = ({ projectId, trainingId, user }) => {
           : c
       )
     );
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/cells/${cellId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newCode }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update cell.');
+      }
+      
+    } catch (err) {
+      console.error('Error updating cell:', err.message);
+      toast.error('Failed to update cell.');
+
+      // Revert the local change if the backend update fails
+      setCells((prevCells) =>
+        prevCells.map((c) =>
+          c.cellId === cellId
+            ? { ...c, code: c.code, status: c.status, output: c.output }
+            : c
+        )
+      );
+    }
   };
 
   /**
    * Handle executing a code cell.
-   * Updates the backend with the latest code before execution.
+   * Sends all cells' code to Gemini AI for approval before execution.
    */
   const handleExecuteCell = async (cellId) => {
     const cell = cells.find((c) => c.cellId === cellId);
@@ -74,41 +103,51 @@ const Notebook = ({ projectId, trainingId, user }) => {
       return toast.error('Only code cells can be executed.');
     }
 
-    if (!cell.approved) {
-      return toast.error('Cell is not approved for execution.');
-    }
-
     if (!cell.code.trim()) {
       return toast.error('Cannot execute empty code.');
     }
 
     try {
-      // Update cell status to 'executing' locally
-      setCells((prevCells) =>
-        prevCells.map((c) =>
-          c.cellId === cellId
-            ? { ...c, status: 'executing', output: 'Executing...' }
-            : c
-        )
-      );
+      // Gather all code from all code cells
+      const allCodeCells = cells.filter((c) => c.type === 'code');
 
-      // Send PUT request to update the cell code in the backend
-      const updateResponse = await fetch(
-        `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/cells/${cellId}`,
+      // Send all code cells to Gemini AI for approval via the approve endpoint
+      const approvalResponse = await fetch(
+        `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/approve`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ newCode: cell.code }),
+          body: JSON.stringify({ cells: allCodeCells }),
         }
       );
 
-      const updateData = await updateResponse.json();
+      const approvalData = await approvalResponse.json();
 
-      if (!updateResponse.ok) {
-        throw new Error(
-          updateData.error || 'Failed to update cell before execution.'
-        );
+      if (!approvalResponse.ok) {
+        throw new Error(approvalData.error || 'Failed to approve code.');
       }
+
+      if (!approvalData.approved) {
+        // Update the specific cell as rejected
+        setCells((prevCells) =>
+          prevCells.map((c) =>
+            c.cellId === cellId
+              ? { ...c, approved: false, rejectionReason: approvalData.reason, status: 'rejected' }
+              : c
+          )
+        );
+        toast.error(`Cell execution rejected: ${approvalData.reason}`);
+        return;
+      }
+
+      // Update cell status to 'reviewing' to indicate Gemini AI is processing
+      setCells((prevCells) =>
+        prevCells.map((c) =>
+          c.cellId === cellId
+            ? { ...c, status: 'reviewing', output: 'Reviewing code with Gemini AI...' }
+            : c
+        )
+      );
 
       // Send POST request to execute the cell
       const executeResponse = await fetch(
@@ -141,8 +180,7 @@ const Notebook = ({ projectId, trainingId, user }) => {
                 : c
             )
           );
-          // Optionally, keep the success toast
-          // toast.success('Cell executed successfully.');
+          toast.success('Cell executed successfully.');
         }
       } else {
         throw new Error(executeData.error || 'Execution failed.');
@@ -156,7 +194,7 @@ const Notebook = ({ projectId, trainingId, user }) => {
             : c
         )
       );
-      // No toast pop-up for errors
+      toast.error('Error executing cell.');
     }
   };
 
@@ -213,77 +251,6 @@ const Notebook = ({ projectId, trainingId, user }) => {
   };
 
   /**
-   * Handle approving a cell.
-   */
-  const handleApproveCell = async (cellId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/cells/${cellId}/approve`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ approved: true }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setCells((prevCells) =>
-          prevCells.map((c) =>
-            c.cellId === cellId
-              ? { ...c, approved: true, rejectionReason: '' }
-              : c
-          )
-        );
-        toast.success('Cell approved.');
-      } else {
-        throw new Error(data.error || 'Failed to approve cell.');
-      }
-    } catch (err) {
-      toast.error(err.message || 'Error approving cell.');
-    }
-  };
-
-  /**
-   * Handle rejecting a cell with a reason.
-   */
-  const handleRejectCell = async (cellId) => {
-    const reason = prompt('Enter reason for rejection:');
-    if (!reason || reason.trim() === '') {
-      return toast.error('Rejection reason is required.');
-    }
-
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/cells/${cellId}/reject`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reason: reason.trim() }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setCells((prevCells) =>
-          prevCells.map((c) =>
-            c.cellId === cellId
-              ? { ...c, approved: false, rejectionReason: reason.trim() }
-              : c
-          )
-        );
-        toast.success('Cell rejected.');
-      } else {
-        throw new Error(data.error || 'Failed to reject cell.');
-      }
-    } catch (err) {
-      toast.error(err.message || 'Error rejecting cell.');
-    }
-  };
-
-  /**
    * Render a single cell based on its type and approval status.
    */
   const renderCell = (cell) => {
@@ -310,47 +277,22 @@ const Notebook = ({ projectId, trainingId, user }) => {
         )}
 
         <div className="cell-controls">
-          {/* Reviewer Controls */}
-          {user && user.role === 'reviewer' && cell.type === 'code' && (
-            <div className="review-controls">
-              {cell.approved ? (
-                <span className="approved-label">
-                  <FaCheckCircle className="icon" /> Approved
-                </span>
-              ) : (
-                <>
-                  <button
-                    onClick={() => handleApproveCell(cell.cellId)}
-                    className="approve-btn"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleRejectCell(cell.cellId)}
-                    className="reject-btn"
-                  >
-                    Reject
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-
           {/* Execute Button for Code Cells */}
           {cell.type === 'code' && (
             <button
               onClick={() => handleExecuteCell(cell.cellId)}
-              disabled={cell.status === 'executing' || !cell.approved}
+              disabled={cell.status === 'reviewing' || cell.status === 'executing'}
               className={`execute-btn ${
-                cell.status === 'executing' ? 'disabled' : ''
+                cell.status === 'reviewing' || cell.status === 'executing' ? 'disabled' : ''
               }`}
             >
-              {cell.status === 'executing' ? (
+              {(cell.status === 'reviewing' || cell.status === 'executing') ? (
                 <FaSpinner className="spinner" />
               ) : (
                 <FaPlay />
               )}{' '}
-              {cell.status === 'executing' ? 'Executing...' : 'Execute'}
+              {(cell.status === 'reviewing') ? 'Reviewing...' :
+               (cell.status === 'executing') ? 'Executing...' : 'Execute'}
             </button>
           )}
 
@@ -372,7 +314,7 @@ const Notebook = ({ projectId, trainingId, user }) => {
         )}
 
         {/* Display Rejection Reason */}
-        {!cell.approved && cell.rejectionReason && (
+        {cell.status === 'rejected' && cell.rejectionReason && (
           <div className="cell-rejection">
             <strong>Rejection Reason:</strong> {cell.rejectionReason}
           </div>

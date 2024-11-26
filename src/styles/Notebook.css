@@ -4,6 +4,7 @@
   padding: 1rem;
   background-color: #f5f5f5;
   border-radius: 8px;
+  margin-top: 1rem;
 }
 
 .notebook-header {
@@ -110,6 +111,7 @@
   margin-top: 0.5rem;
   padding: 0.5rem;
   background-color: #fff3cd;
+  border: 1px solid #ffeeba;
   border-radius: 4px;
   color: #856404;
 }
@@ -122,6 +124,28 @@
 }
 
 .approved-label .icon {
+  margin-right: 0.3rem;
+}
+
+.rejected-label {
+  display: flex;
+  align-items: center;
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.rejected-label .icon {
+  margin-right: 0.3rem;
+}
+
+.error-label {
+  display: flex;
+  align-items: center;
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.error-label .icon {
   margin-right: 0.3rem;
 }
 

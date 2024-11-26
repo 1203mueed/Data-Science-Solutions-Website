@@ -8,6 +8,7 @@ const fs = require('fs').promises;
 const mongoose = require('mongoose');
 const { spawn } = require('child_process');
 const axios = require('axios');
+const { approveCode } = require('../services/geminiService');
 
 // URL of the Python Kernel Server
 const kernelServerURL = 'http://localhost:5001';
@@ -1056,6 +1057,33 @@ const getTrainingSessionDetails = async (req, res) => {
   }
 };
 
+
+/**
+ * Approve all code cells in a training session.
+ * Sends all code cells to Gemini AI for approval.
+ */
+const approveCodeHandler = async (req, res) => {
+  const { projectId, trainingId } = req.params;
+  const { cells } = req.body; // Expecting an array of cell objects
+
+  if (!Array.isArray(cells)) {
+    return res.status(400).json({ error: 'Invalid cells data. Expected an array of cells.' });
+  }
+
+  try {
+    // Send all code cells to Gemini AI for approval
+    const approval = await approveCode(cells);
+
+    res.status(200).json(approval);
+  } catch (error) {
+    console.error('Error approving code with Gemini AI:', error.message);
+    res.status(500).json({ error: 'Failed to approve code.' });
+  }
+};
+
+
+
+
 /**
  * Add a new cell to a training session.
  */
@@ -1089,7 +1117,7 @@ const addCell = async (req, res) => {
       code: '',
       output: '',
       status: 'pending',
-      approved: true, // Set to true by default
+      approved: type === 'markdown', // Automatically approve markdown cells
       rejectionReason: '',
     };
 
@@ -1103,7 +1131,7 @@ const addCell = async (req, res) => {
       trainingSession.notebookPath
     );
 
-    // Load the notebook
+    // Add the new cell to the notebook
     let nb;
     try {
       const nbContent = await fs.readFile(notebookFilePath, 'utf-8');
@@ -1139,6 +1167,8 @@ const addCell = async (req, res) => {
   }
 };
 
+
+
 /**
  * Get all cells in a training session.
  */
@@ -1165,140 +1195,6 @@ const getCells = async (req, res) => {
     res.status(200).json({ cells });
   } catch (error) {
     console.error('Error fetching cells:', error.message);
-    res.status(500).json({ error: 'Internal server error.' });
-  }
-};
-
-/**
- * Approve a specific code cell.
- */
-const approveCell = async (req, res) => {
-  const { projectId, trainingId, cellId } = req.params;
-
-  try {
-    const federatedTraining = await FederatedTraining.findById(projectId);
-
-    if (!federatedTraining) {
-      return res.status(404).json({ error: 'Project not found.' });
-    }
-
-    const trainingSession = federatedTraining.trainingHistory.find(
-      (session) => session.trainingId.toString() === trainingId
-    );
-
-    if (!trainingSession) {
-      return res.status(404).json({ error: 'Training session not found.' });
-    }
-
-    const cell = trainingSession.cells.find((c) => c.cellId.toString() === cellId);
-
-    if (!cell) {
-      return res.status(404).json({ error: 'Cell not found.' });
-    }
-
-    if (cell.type !== 'code' && cell.type !== 'markdown') {
-      return res.status(400).json({ error: 'Invalid cell type.' });
-    }
-
-    cell.approved = true;
-    cell.rejectionReason = '';
-
-    // Update the notebook file
-    const projectFolderPath = path.join(
-      __dirname,
-      '../assets/DatasetUploads',
-      federatedTraining.projectFolder
-    );
-    const notebookFilePath = path.join(projectFolderPath, trainingSession.notebookPath);
-
-    // Read existing notebook
-    let notebook;
-    try {
-      const nbContent = await fs.readFile(notebookFilePath, 'utf-8');
-      notebook = JSON.parse(nbContent);
-    } catch (err) {
-      return res.status(500).json({ error: 'Failed to read notebook file.' });
-    }
-
-    // Find the notebook cell by cellId
-    const nbCellIndex = notebook.cells.findIndex(
-      (c) => c.metadata && c.metadata.id === cell.cellId.toString()
-    );
-
-    if (nbCellIndex !== -1) {
-      // Update the cell type and clear outputs if needed
-      notebook.cells[nbCellIndex].cell_type = cell.type;
-      if (cell.type === 'code') {
-        notebook.cells[nbCellIndex].outputs = [];
-        notebook.cells[nbCellIndex].execution_count = null;
-      }
-    } else {
-      // If cell not found in notebook, append it
-      const newNotebookCell = {
-        cell_type: cell.type,
-        source: cell.code,
-        metadata: { id: cell.cellId.toString() }, // Assign the cellId as the 'id'
-        outputs: cell.type === 'code' ? [] : undefined,
-        execution_count: cell.type === 'code' ? null : undefined,
-      };
-      notebook.cells.push(newNotebookCell);
-    }
-
-    // Save the updated notebook back to file
-    await fs.writeFile(notebookFilePath, JSON.stringify(notebook, null, 2));
-
-    await federatedTraining.save();
-
-    res.status(200).json({ message: 'Cell approved successfully.', cell });
-  } catch (error) {
-    console.error('Error approving cell:', error.message);
-    res.status(500).json({ error: 'Internal server error.' });
-  }
-};
-
-/**
- * Reject a specific code cell with a reason.
- */
-const rejectCell = async (req, res) => {
-  const { projectId, trainingId, cellId } = req.params;
-  const { reason } = req.body;
-
-  if (!reason || typeof reason !== 'string' || reason.trim() === '') {
-    return res.status(400).json({ error: 'Rejection reason is required and must be a non-empty string.' });
-  }
-
-  try {
-    const federatedTraining = await FederatedTraining.findById(projectId);
-
-    if (!federatedTraining) {
-      return res.status(404).json({ error: 'Project not found.' });
-    }
-
-    const trainingSession = federatedTraining.trainingHistory.find(
-      (session) => session.trainingId.toString() === trainingId
-    );
-
-    if (!trainingSession) {
-      return res.status(404).json({ error: 'Training session not found.' });
-    }
-
-    const cell = trainingSession.cells.find((c) => c.cellId.toString() === cellId);
-
-    if (!cell) {
-      return res.status(404).json({ error: 'Cell not found.' });
-    }
-
-    if (cell.type !== 'code') {
-      return res.status(400).json({ error: 'Only code cells can be rejected.' });
-    }
-
-    cell.approved = false;
-    cell.rejectionReason = reason.trim();
-    await federatedTraining.save();
-
-    res.status(200).json({ message: 'Cell rejected successfully.', cell });
-  } catch (error) {
-    console.error('Error rejecting cell:', error.message);
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
@@ -1342,6 +1238,7 @@ const deleteCell = async (req, res) => {
   }
 };
 
+
 /**
  * Update a cell's code in a training session.
  */
@@ -1379,6 +1276,8 @@ const updateCell = async (req, res) => {
     cell.code = newCode;
     cell.status = 'pending';
     cell.output = '';
+    cell.approved = false; // Reset approval status upon code update
+    cell.rejectionReason = '';
 
     // Get the notebook file path
     const notebookFilePath = path.join(
@@ -1388,7 +1287,7 @@ const updateCell = async (req, res) => {
       trainingSession.notebookPath
     );
 
-    // Load the notebook
+    // Update the cell in the notebook
     let nb;
     try {
       const nbContent = await fs.readFile(notebookFilePath, 'utf-8');
@@ -1403,7 +1302,6 @@ const updateCell = async (req, res) => {
       };
     }
 
-    // Update the cell in the notebook
     const nbCellIndex = nb.cells.findIndex(
       (c) => c.metadata && c.metadata.id === cell.cellId.toString()
     );
@@ -1424,11 +1322,11 @@ const updateCell = async (req, res) => {
   }
 };
 
+
 /**
  * Execute a specific code cell in a training session.
- * Initially, all cells are approved.
+ * Sends all code cells to Gemini AI for approval before execution.
  */
-
 const executeCell = async (req, res) => {
   const { projectId, trainingId, cellId } = req.params;
 
@@ -1460,12 +1358,21 @@ const executeCell = async (req, res) => {
       return res.status(400).json({ error: 'Only code cells can be executed.' });
     }
 
-    if (!cell.approved) {
-      return res.status(400).json({ error: 'Cell is not approved for execution.' });
-    }
-
     if (!cell.code.trim()) {
       return res.status(400).json({ error: 'Cannot execute empty code.' });
+    }
+
+    // Gather all code from all code cells
+    const allCodeCells = trainingSession.cells.filter((c) => c.type === 'code');
+    // Pass the array of code cell objects to approveCode
+    const approval = await approveCode(allCodeCells);
+
+    if (!approval.approved) {
+      // Mark the specific cell as rejected
+      cell.status = 'rejected';
+      cell.rejectionReason = approval.reason;
+      await federatedTraining.save();
+      return res.status(400).json({ error: 'Cell execution rejected.', reason: approval.reason });
     }
 
     // Update cell status to 'executing'
@@ -1473,7 +1380,7 @@ const executeCell = async (req, res) => {
     cell.output = 'Executing...';
     await federatedTraining.save();
 
-    // Define the notebook path
+    // Define the notebook file path
     const notebookFilePath = path.join(
       __dirname,
       '../assets/DatasetUploads',
@@ -1534,6 +1441,7 @@ const executeCell = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
+
 
 
 // controllers/federatedTrainingController.js
@@ -1611,10 +1519,9 @@ module.exports = {
 
   addCell,
   getCells,
-  approveCell,
   deleteCell,
-  rejectCell,
   executeCell,
   updateCell,
-  shutdownKernel
+  shutdownKernel,
+  approveCodeHandler,
 };
