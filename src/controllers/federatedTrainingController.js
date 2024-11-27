@@ -8,8 +8,7 @@ const fs = require('fs').promises;
 const mongoose = require('mongoose');
 const { spawn } = require('child_process');
 const axios = require('axios');
-const { approveCode } = require('../services/geminiService');
-
+const { approveSingleCell } = require('../services/geminiService'); // Updated import
 // URL of the Python Kernel Server
 const kernelServerURL = 'http://localhost:5001';
 
@@ -1057,33 +1056,6 @@ const getTrainingSessionDetails = async (req, res) => {
   }
 };
 
-
-/**
- * Approve all code cells in a training session.
- * Sends all code cells to Gemini AI for approval.
- */
-const approveCodeHandler = async (req, res) => {
-  const { projectId, trainingId } = req.params;
-  const { cells } = req.body; // Expecting an array of cell objects
-
-  if (!Array.isArray(cells)) {
-    return res.status(400).json({ error: 'Invalid cells data. Expected an array of cells.' });
-  }
-
-  try {
-    // Send all code cells to Gemini AI for approval
-    const approval = await approveCode(cells);
-
-    res.status(200).json(approval);
-  } catch (error) {
-    console.error('Error approving code with Gemini AI:', error.message);
-    res.status(500).json({ error: 'Failed to approve code.' });
-  }
-};
-
-
-
-
 /**
  * Add a new cell to a training session.
  */
@@ -1322,10 +1294,9 @@ const updateCell = async (req, res) => {
   }
 };
 
-
 /**
  * Execute a specific code cell in a training session.
- * Sends all code cells to Gemini AI for approval before execution.
+ * Sends all code cells for context and evaluates only the target cell.
  */
 const executeCell = async (req, res) => {
   const { projectId, trainingId, cellId } = req.params;
@@ -1347,97 +1318,220 @@ const executeCell = async (req, res) => {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
-    // Find the specific cell to execute
-    const cell = trainingSession.cells.find((c) => c.cellId.toString() === cellId);
+    // Find all code cells in the training session
+    const allCodeCells = trainingSession.cells.filter((c) => c.type === 'code');
 
-    if (!cell) {
+    if (allCodeCells.length === 0) {
+      return res.status(400).json({ error: 'No code cells available for execution.' });
+    }
+
+    // Find the specific cell to execute
+    const targetCell = trainingSession.cells.find((c) => c.cellId.toString() === cellId);
+
+    if (!targetCell) {
       return res.status(404).json({ error: 'Cell not found.' });
     }
 
-    if (cell.type !== 'code') {
+    if (targetCell.type !== 'code') {
       return res.status(400).json({ error: 'Only code cells can be executed.' });
     }
 
-    if (!cell.code.trim()) {
+    if (!targetCell.code.trim()) {
       return res.status(400).json({ error: 'Cannot execute empty code.' });
     }
 
-    // Gather all code from all code cells
-    const allCodeCells = trainingSession.cells.filter((c) => c.type === 'code');
-    // Pass the array of code cell objects to approveCode
-    const approval = await approveCode(allCodeCells);
+    // Extract datasetFolders from dataProviders
+    const datasetFolders = federatedTraining.dataProviders
+      .filter(dp => dp.datasetFolder)
+      .map(dp => dp.datasetFolder);
 
-    if (!approval.approved) {
-      // Mark the specific cell as rejected
-      cell.status = 'rejected';
-      cell.rejectionReason = approval.reason;
+    // Prepare all code cells' code
+    const allCellsCode = allCodeCells.map(cell => ({
+      cellId: cell.cellId,
+      code: cell.code,
+      type: cell.type,
+    }));
+
+    // Call the approveSingleCell service with all code cells and the target cell
+    const approvalResult = await approveSingleCell(allCellsCode, targetCell, datasetFolders);
+
+    // Debugging log
+    console.log(`Approval Result for Cell ${cellId}:`, approvalResult);
+
+    // Update the target cell based on approval result
+    if (approvalResult.approved) {
+      // Update cell status to 'executing'
+      targetCell.status = 'executing';
+      targetCell.output = 'Executing...';
       await federatedTraining.save();
-      return res.status(400).json({ error: 'Cell execution rejected.', reason: approval.reason });
-    }
 
-    // Update cell status to 'executing'
-    cell.status = 'executing';
-    cell.output = 'Executing...';
-    await federatedTraining.save();
+      // Define the notebook file path
+      const notebookFilePath = path.join(
+        __dirname,
+        '../assets/DatasetUploads',
+        federatedTraining.projectFolder,
+        trainingSession.notebookPath
+      );
 
-    // Define the notebook file path
-    const notebookFilePath = path.join(
-      __dirname,
-      '../assets/DatasetUploads',
-      federatedTraining.projectFolder,
-      trainingSession.notebookPath
-    );
-
-    // Find the cell index based on cellId
-    const cellIndex = trainingSession.cells.findIndex(c => c.cellId.toString() === cellId);
-    if (cellIndex === -1) {
-      return res.status(404).json({ error: 'Cell index not found.' });
-    }
-
-    // Initialize the kernel for the notebook if not already initialized
-    try {
-      await axios.post(`${kernelServerURL}/init_kernel`, {
-        notebook_path: notebookFilePath,
-      });
-    } catch (error) {
-      // If the kernel is already initialized, the server responds with a 200 or 409 status
-      if (error.response && (error.response.status !== 200 && error.response.status !== 409)) {
-        console.error('Error initializing kernel:', error.message);
-        cell.status = 'error';
-        cell.output = 'Error initializing kernel.';
-        await federatedTraining.save();
-        return res.status(500).json({ error: 'Error initializing kernel.' });
+      // Find the cell index based on cellId
+      const cellIndex = trainingSession.cells.findIndex(c => c.cellId.toString() === cellId);
+      if (cellIndex === -1) {
+        return res.status(404).json({ error: 'Cell index not found.' });
       }
-    }
 
-    // Execute the cell
-    try {
-      const response = await axios.post(`${kernelServerURL}/execute_cell`, {
-        notebook_path: notebookFilePath,
-        cell_index: cellIndex,
-      });
+      // Initialize the kernel for the notebook if not already initialized
+      try {
+        await axios.post(`${kernelServerURL}/init_kernel`, {
+          notebook_path: notebookFilePath,
+        });
+      } catch (error) {
+        // If the kernel is already initialized, the server responds with a 200 or 409 status
+        if (error.response && (error.response.status !== 200 && error.response.status !== 409)) {
+          console.error('Error initializing kernel:', error.message);
+          targetCell.status = 'error';
+          targetCell.output = 'Error initializing kernel.';
+          await federatedTraining.save();
+          return res.status(500).json({ error: 'Error initializing kernel.' });
+        }
+      }
 
-      const { outputs } = response.data;
+      // Execute the cell
+      try {
+        const response = await axios.post(`${kernelServerURL}/execute_cell`, {
+          notebook_path: notebookFilePath,
+          cell_index: cellIndex,
+        });
 
-      // Update the cell's output and status
-      cell.output = outputs.join('\n') || '';
-      cell.status = 'executed';
+        const { outputs } = response.data;
 
+        // Update the cell's output and status
+        targetCell.output = outputs.join('\n') || '';
+        targetCell.status = 'executed';
+
+        await federatedTraining.save();
+        return res.status(200).json({ output: targetCell.output, error: null });
+
+      } catch (error) {
+        console.error('Error executing cell:', error.response ? error.response.data : error.message);
+        targetCell.status = 'error';
+        targetCell.output = error.response && error.response.data && error.response.data.error
+          ? error.response.data.error
+          : 'Error executing cell.';
+        await federatedTraining.save();
+        return res.status(500).json({ error: 'Error executing cell.', details: targetCell.output });
+      }
+
+    } else {
+      // If not approved, update the cell as rejected
+      targetCell.status = 'rejected';
+      targetCell.rejectionReason = approvalResult.reason;
       await federatedTraining.save();
-      return res.status(200).json({ output: cell.output, error: null });
-
-    } catch (error) {
-      console.error('Error executing cell:', error.response ? error.response.data : error.message);
-      cell.status = 'error';
-      cell.output = error.response && error.response.data && error.response.data.error
-        ? error.response.data.error
-        : 'Error executing cell.';
-      await federatedTraining.save();
-      return res.status(500).json({ error: 'Error executing cell.', details: cell.output });
+      return res.status(400).json({ error: 'Cell execution rejected.', reason: approvalResult.reason });
     }
 
   } catch (error) {
     console.error('Error executing cell:', error.message);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+/**
+ * Approve all code cells in a training session.
+ * Sends all code cells for context and evaluates only the specified cells.
+ */
+const approveCodeHandler = async (req, res) => {
+  try {
+    const { projectId, trainingId } = req.params;
+    const { cells } = req.body; // Expecting an array of cell objects
+
+    if (!projectId || !trainingId) {
+      return res.status(400).json({ error: 'Project ID and Training ID are required.' });
+    }
+
+    if (!cells || !Array.isArray(cells)) {
+      return res.status(400).json({ error: 'Cells are required and should be an array.' });
+    }
+
+    // Fetch the federated training project with populated dataProviders
+    const training = await FederatedTraining.findById(projectId).populate('dataProviders.user');
+
+    if (!training) {
+      console.error(`FederatedTraining project with ID ${projectId} not found.`);
+      return res.status(404).json({ error: 'Federated training project not found.' });
+    }
+
+    // Find the specific training session
+    const trainingSession = training.trainingHistory.find(session => session.trainingId.toString() === trainingId);
+
+    if (!trainingSession) {
+      console.error(`Training session with ID ${trainingId} not found in project ${projectId}.`);
+      return res.status(404).json({ error: 'Training session not found.' });
+    }
+
+    // Extract datasetFolders from training.dataProviders
+    const datasetFolders = training.dataProviders
+      .filter(dp => dp.datasetFolder)
+      .map(dp => dp.datasetFolder);
+
+    // Debugging logs
+    console.log(`Approving cells for projectId: ${projectId}, trainingId: ${trainingId}`);
+    console.log(`Dataset Folders: ${datasetFolders.join(', ')}`);
+    console.log(`Number of Cells to Approve: ${cells.length}`);
+
+    // Find all code cells in the training session
+    const allCodeCells = trainingSession.cells.filter((c) => c.type === 'code');
+
+    // Prepare all code cells' code
+    const allCellsCode = allCodeCells.map(cell => ({
+      cellId: cell.cellId,
+      code: cell.code,
+      type: cell.type,
+    }));
+
+    // Map of cells to approve
+    const targetCellsMap = {};
+    cells.forEach(cell => {
+      if (cell.cellId && cell.code) {
+        targetCellsMap[cell.cellId] = cell.code;
+      }
+    });
+
+    // For each target cell, perform approval
+    const approvalPromises = cells.map(async (cell) => {
+      const fullCell = allCodeCells.find(c => c.cellId === cell.cellId);
+      if (!fullCell) {
+        return { cellId: cell.cellId, approved: false, reason: 'Cell not found.' };
+      }
+
+      // Use the approveSingleCell function to evaluate the target cell with context
+      const approval = await approveSingleCell(allCellsCode, fullCell, datasetFolders);
+      return approval;
+    });
+
+    // Await all approvals
+    const approvalResults = await Promise.all(approvalPromises);
+
+    // Update the training session based on approval results
+    approvalResults.forEach((result) => {
+      const cell = trainingSession.cells.find(c => c.cellId === result.cellId);
+      if (cell) {
+        cell.approved = result.approved;
+        if (result.approved) {
+          cell.status = 'approved'; // Define 'approved' status if needed
+          cell.rejectionReason = '';
+        } else {
+          cell.status = 'rejected';
+          cell.rejectionReason = result.reason;
+        }
+      }
+    });
+
+    // Save the updated training session
+    await training.save();
+
+    res.status(200).json(approvalResults);
+  } catch (err) {
+    console.error('Error in approveCodeHandler:', err.message);
     res.status(500).json({ error: 'Internal server error.' });
   }
 };

@@ -18,7 +18,9 @@ const Notebook = ({ projectId, trainingId, user }) => {
   const [cells, setCells] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch initial cells
+  // Removed datasetFolders since it's not used
+
+  // Fetch initial cells and training session details
   useEffect(() => {
     const fetchCells = async () => {
       setIsLoading(true);
@@ -42,7 +44,29 @@ const Notebook = ({ projectId, trainingId, user }) => {
       }
     };
 
+    const fetchTrainingSessionDetails = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}`
+        );
+        const data = await response.json();
+
+        if (response.ok) {
+          const trainingSession = data.trainingSession;
+          // Assuming datasetFolders might be used in the future,
+          // but currently not utilized in this component.
+          // If needed, pass them to child components or use them as required.
+        } else {
+          throw new Error(data.error || 'Failed to fetch training session details.');
+        }
+      } catch (err) {
+        console.error('Error fetching training session details:', err.message);
+        toast.error('Failed to load training session details.');
+      }
+    };
+
     fetchCells();
+    fetchTrainingSessionDetails();
   }, [projectId, trainingId]);
 
   /**
@@ -73,82 +97,97 @@ const Notebook = ({ projectId, trainingId, user }) => {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update cell.');
       }
-      
+
+      toast.success('Cell updated successfully.');
     } catch (err) {
       console.error('Error updating cell:', err.message);
       toast.error('Failed to update cell.');
 
-      // Revert the local change if the backend update fails
-      setCells((prevCells) =>
-        prevCells.map((c) =>
-          c.cellId === cellId
-            ? { ...c, code: c.code, status: c.status, output: c.output }
-            : c
-        )
-      );
+      // Optionally, revert the optimistic update or fetch the latest state from the backend
+      // For simplicity, this example does not revert the change
     }
   };
 
   /**
    * Handle executing a code cell.
-   * Sends all cells' code to Gemini AI for approval before execution.
+   * Sends the specific cell's code and datasetFolders to Gemini AI for approval before execution.
    */
   const handleExecuteCell = async (cellId) => {
     const cell = cells.find((c) => c.cellId === cellId);
     if (!cell) {
       return toast.error('Cell not found.');
     }
-
+  
     if (cell.type !== 'code') {
       return toast.error('Only code cells can be executed.');
     }
-
+  
     if (!cell.code.trim()) {
       return toast.error('Cannot execute empty code.');
     }
-
+  
     try {
-      // Gather all code from all code cells
-      const allCodeCells = cells.filter((c) => c.type === 'code');
-
-      // Send all code cells to Gemini AI for approval via the approve endpoint
+      // Prepare the specific cell for approval
+      const cellToApprove = { cellId: cell.cellId, code: cell.code };
+  
       const approvalResponse = await fetch(
         `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/approve`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cells: allCodeCells }),
+          body: JSON.stringify({ cells: [cellToApprove] }), // Send only the specific cell
         }
       );
-
+  
       const approvalData = await approvalResponse.json();
-
+  
+      // Debugging log
+      console.log('Approval Data:', approvalData);
+  
       if (!approvalResponse.ok) {
         throw new Error(approvalData.error || 'Failed to approve code.');
       }
-
-      if (!approvalData.approved) {
+  
+      // Handle missing cellId in approval data by assuming it matches the order
+      const cellApproval = approvalData[0]; // Since only one cell was sent
+  
+      if (!cellApproval || cellApproval.approved === undefined) {
+        throw new Error(
+          `No approval result found for the cell with ID: ${cellId}`
+        );
+      }
+  
+      if (!cellApproval.approved) {
         // Update the specific cell as rejected
         setCells((prevCells) =>
           prevCells.map((c) =>
             c.cellId === cellId
-              ? { ...c, approved: false, rejectionReason: approvalData.reason, status: 'rejected' }
+              ? {
+                  ...c,
+                  approved: false,
+                  rejectionReason: cellApproval.reason,
+                  status: 'rejected',
+                }
               : c
           )
         );
-        toast.error(`Cell execution rejected: ${approvalData.reason}`);
+        toast.error(`Cell execution rejected: ${cellApproval.reason}`);
         return;
       }
-
+  
       // Update cell status to 'reviewing' to indicate Gemini AI is processing
       setCells((prevCells) =>
         prevCells.map((c) =>
           c.cellId === cellId
-            ? { ...c, status: 'reviewing', output: 'Reviewing code with Gemini AI...' }
+            ? {
+                ...c,
+                status: 'reviewing',
+                output: 'Reviewing code with Gemini AI...',
+              }
             : c
         )
       );
-
+  
       // Send POST request to execute the cell
       const executeResponse = await fetch(
         `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/cells/${cellId}/execute`,
@@ -157,9 +196,9 @@ const Notebook = ({ projectId, trainingId, user }) => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-
+  
       const executeData = await executeResponse.json();
-
+  
       if (executeResponse.ok) {
         if (executeData.error) {
           // Handle execution error by setting cell output and status
@@ -170,7 +209,6 @@ const Notebook = ({ projectId, trainingId, user }) => {
                 : c
             )
           );
-          // No toast pop-up for errors
         } else {
           // Handle successful execution by setting cell output and status
           setCells((prevCells) =>
@@ -197,7 +235,7 @@ const Notebook = ({ projectId, trainingId, user }) => {
       toast.error('Error executing cell.');
     }
   };
-
+  
   /**
    * Handle adding a new cell.
    * Allows adding either 'code' or 'markdown' cells.

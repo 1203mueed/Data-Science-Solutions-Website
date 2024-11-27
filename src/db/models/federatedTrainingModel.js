@@ -25,7 +25,7 @@ const cellSchema = new mongoose.Schema({
   },
   status: { 
     type: String, 
-    enum: ['pending', 'executing', 'executed', 'error'], 
+    enum: ['pending', 'reviewing', 'executing', 'executed', 'rejected', 'error'], 
     default: 'pending' 
   },
   approved: { 
