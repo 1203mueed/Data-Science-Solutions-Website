@@ -6,19 +6,19 @@ import {
   FaPlay,
   FaPlus,
   FaSpinner,
+  FaCheckCircle,
+  FaTimesCircle,
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import '../styles/Notebook.css';
 import CodeMirror from '@uiw/react-codemirror';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/mode/python/python';
+import { dracula } from '@uiw/codemirror-theme-dracula';
+import { python } from '@codemirror/lang-python';
 import ReactMarkdown from 'react-markdown';
 
 const Notebook = ({ projectId, trainingId, user }) => {
   const [cells, setCells] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Removed datasetFolders since it's not used
 
   // Fetch initial cells and training session details
   useEffect(() => {
@@ -53,9 +53,7 @@ const Notebook = ({ projectId, trainingId, user }) => {
 
         if (response.ok) {
           const trainingSession = data.trainingSession;
-          // Assuming datasetFolders might be used in the future,
-          // but currently not utilized in this component.
-          // If needed, pass them to child components or use them as required.
+          // Additional logic if needed
         } else {
           throw new Error(data.error || 'Failed to fetch training session details.');
         }
@@ -98,38 +96,43 @@ const Notebook = ({ projectId, trainingId, user }) => {
         throw new Error(data.error || 'Failed to update cell.');
       }
 
-      toast.success('Cell updated successfully.');
+      // Removed toast notification as per your request
     } catch (err) {
       console.error('Error updating cell:', err.message);
       toast.error('Failed to update cell.');
-
-      // Optionally, revert the optimistic update or fetch the latest state from the backend
-      // For simplicity, this example does not revert the change
     }
   };
 
   /**
    * Handle executing a code cell.
-   * Sends the specific cell's code and datasetFolders to Gemini AI for approval before execution.
    */
   const handleExecuteCell = async (cellId) => {
     const cell = cells.find((c) => c.cellId === cellId);
     if (!cell) {
       return toast.error('Cell not found.');
     }
-  
+
     if (cell.type !== 'code') {
       return toast.error('Only code cells can be executed.');
     }
-  
+
     if (!cell.code.trim()) {
       return toast.error('Cannot execute empty code.');
     }
-  
+
     try {
+      // Immediately set the cell status to 'reviewing' for instant feedback
+      setCells((prevCells) =>
+        prevCells.map((c) =>
+          c.cellId === cellId
+            ? { ...c, status: 'reviewing', output: 'Reviewing code with Gemini AI...' }
+            : c
+        )
+      );
+
       // Prepare the specific cell for approval
       const cellToApprove = { cellId: cell.cellId, code: cell.code };
-  
+
       const approvalResponse = await fetch(
         `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/approve`,
         {
@@ -138,25 +141,21 @@ const Notebook = ({ projectId, trainingId, user }) => {
           body: JSON.stringify({ cells: [cellToApprove] }), // Send only the specific cell
         }
       );
-  
+
       const approvalData = await approvalResponse.json();
-  
-      // Debugging log
+
       console.log('Approval Data:', approvalData);
-  
+
       if (!approvalResponse.ok) {
         throw new Error(approvalData.error || 'Failed to approve code.');
       }
-  
-      // Handle missing cellId in approval data by assuming it matches the order
+
       const cellApproval = approvalData[0]; // Since only one cell was sent
-  
+
       if (!cellApproval || cellApproval.approved === undefined) {
-        throw new Error(
-          `No approval result found for the cell with ID: ${cellId}`
-        );
+        throw new Error(`No approval result found for the cell with ID: ${cellId}`);
       }
-  
+
       if (!cellApproval.approved) {
         // Update the specific cell as rejected
         setCells((prevCells) =>
@@ -174,20 +173,16 @@ const Notebook = ({ projectId, trainingId, user }) => {
         toast.error(`Cell execution rejected: ${cellApproval.reason}`);
         return;
       }
-  
-      // Update cell status to 'reviewing' to indicate Gemini AI is processing
+
+      // Update cell status to 'executing' to indicate Gemini AI has approved
       setCells((prevCells) =>
         prevCells.map((c) =>
           c.cellId === cellId
-            ? {
-                ...c,
-                status: 'reviewing',
-                output: 'Reviewing code with Gemini AI...',
-              }
+            ? { ...c, status: 'executing', output: 'Executing...' }
             : c
         )
       );
-  
+
       // Send POST request to execute the cell
       const executeResponse = await fetch(
         `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/cells/${cellId}/execute`,
@@ -196,9 +191,9 @@ const Notebook = ({ projectId, trainingId, user }) => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-  
+
       const executeData = await executeResponse.json();
-  
+
       if (executeResponse.ok) {
         if (executeData.error) {
           // Handle execution error by setting cell output and status
@@ -214,7 +209,7 @@ const Notebook = ({ projectId, trainingId, user }) => {
           setCells((prevCells) =>
             prevCells.map((c) =>
               c.cellId === cellId
-                ? { ...c, output: executeData.output, status: 'executed' }
+                ? { ...c, output: executeData.output, status: 'executed', approved: true }
                 : c
             )
           );
@@ -235,10 +230,9 @@ const Notebook = ({ projectId, trainingId, user }) => {
       toast.error('Error executing cell.');
     }
   };
-  
+
   /**
    * Handle adding a new cell.
-   * Allows adding either 'code' or 'markdown' cells.
    */
   const handleAddCell = async (type) => {
     try {
@@ -292,16 +286,14 @@ const Notebook = ({ projectId, trainingId, user }) => {
    * Render a single cell based on its type and approval status.
    */
   const renderCell = (cell) => {
+    console.log(`Rendering cell ${cell.cellId}: Approved - ${cell.approved}`);
     return (
       <div key={cell.cellId} className={`cell ${cell.type}`}>
         {cell.type === 'code' ? (
           <CodeMirror
             value={cell.code || ''}
-            options={{
-              mode: 'python',
-              theme: 'material',
-              lineNumbers: true,
-            }}
+            extensions={[python()]}
+            theme={dracula}
             onChange={(value, viewUpdate) =>
               handleLocalCodeChange(cell.cellId, value)
             }
@@ -341,6 +333,28 @@ const Notebook = ({ projectId, trainingId, user }) => {
           >
             <FaTrash /> Delete
           </button>
+
+          {/* Approval Status */}
+          <div className="approval-status">
+            {cell.status === 'executed' && cell.approved && (
+              <>
+                <FaCheckCircle color="#28a745" />
+                <span>Approved</span>
+              </>
+            )}
+            {cell.status === 'rejected' && !cell.approved && (
+              <>
+                <FaTimesCircle color="#dc3545" />
+                <span>Rejected</span>
+              </>
+            )}
+            {cell.status === 'reviewing' || cell.status === 'executing' ? (
+              <>
+                <FaSpinner className="spinner" />
+                <span>{cell.status === 'reviewing' ? 'Reviewing' : 'Executing'}</span>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {/* Display Output */}

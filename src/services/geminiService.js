@@ -32,45 +32,68 @@ async function approveSingleCell(allCells, targetCell, datasetFolders) {
   // Prepare the dataset folders information
   let datasetInfo = '';
   if (Array.isArray(datasetFolders) && datasetFolders.length > 0) {
-    datasetInfo = `I've created a federated training platform where data providers will provide data, and using that data, the model trainer will be able to train the model without breaching privacy. You are assigned as a code checker. I'm providing you all the codes of the model trainer and you should respond with "Approved" or "Rejected: <reason>" for the specified cell. Only provide one of these two responses for the specified cell. Do not provide approvals or rejections for other cells. Here are the data providers' folders: ${datasetFolders.join(', ')}.`;
-    
-    datasetInfo += `
+    datasetInfo = `I've created a federated training platform where data providers will provide data, and using that data, the model trainer will be able to train the model without breaching privacy. You are assigned as a code checker. I'm providing you all the codes of the model trainer and you should respond with "Approved" or "Rejected: <reason>" for the specified cell. Only provide one of these two responses for the specified cell. Do not provide approvals or rejections for other cells. Here are the data providers' folders: ${datasetFolders.join(', ')}.` +
+      `
 
-**Examples:**
+**Examples:** 
 
 1. **Allowed:**
-   - Reading a CSV file from any location:
+   - Reading a CSV file from any location outside the dataset folders:
      \`\`\`python
      import pandas as pd
      df = pd.read_csv('newfeatures(in).csv')
      \`\`\`
 
+   - Reading a CSV file from a dataset folder:
+     \`\`\`python
+     import pandas as pd
+     df = pd.read_csv('dataset-prefix/testing_dataset_1/derm12345_metadata_train.csv')
+     \`\`\`
+
+   - Storing or processing data read from dataset folders:
+     \`\`\`python
+     summary = df.describe()
+     print(summary)
+     \`\`\`
+
 2. **Disallowed:**
-   - Saving data from dataset folders:
+   - Visualizing data directly read from dataset folders:
+     \`\`\`python
+     import matplotlib.pyplot as plt
+     import pandas as pd
+     df = pd.read_csv('dataset-prefix/testing_dataset_1/derm12345_metadata_train.csv')
+     plt.plot(df['column'])
+     plt.show()
+     \`\`\`
+
+   - Saving modified data back to dataset folders:
      \`\`\`python
      df.to_csv('dataset-prefix/output.csv')
+     \`\`\`
+
+   - Deleting files from dataset folders:
+     \`\`\`python
+     os.remove('dataset-prefix/testing_dataset_1/derm12345_metadata_train.csv')
      \`\`\`
 `;
   } else {
     datasetInfo = `I've created a federated training platform where data providers will provide data, and using that data, the model trainer will be able to train the model without breaching privacy. You are assigned as a code checker. I'm providing you all the codes of the model trainer and you should respond with "Approved" or "Rejected: <reason>" for the specified cell. Only provide one of these two responses for the specified cell. Do not provide approvals or rejections for other cells. Here are the data providers' folders: None.
-
-**Examples:**
-
-1. **Allowed:**
-   - Reading a CSV file:
-     \`\`\`python
-     import pandas as pd
-     df = pd.read_csv('any_file.csv')
-     \`\`\`
-`;
+    `;
   }
 
   // Define the prompt based on the presence of dataset folders
   const prompt = `${datasetInfo}
 
-**Important:** Only evaluate the code for the specified cell below without making any assumptions or inferences about additional code that may or may not exist.
+**Important Rules:**
+1. The model trainer can freely read data from files **outside dataset folders** without restriction.
+2. For files inside dataset folders, the model trainer can:
+   - Read files and store the data into variables.
+   - Perform processing or analysis on data stored in variables.
 
-You act as a code checker and determine if the model trainer's code in the specified cell adheres to these privacy constraints. Please review the following code and respond with "Approved" or "Rejected: <reason>". Only provide one of these two responses.
+3. **Disallowed Actions for Dataset Folders:**
+   - Saving modified data back to the dataset folders.
+   - Visualizing data directly read from dataset folders.
+   - Performing any action that breaches data privacy or integrity.
 
 **Notebook Context:**
 ${allCells
@@ -84,41 +107,44 @@ ${cell.code}
 **Target Cell: ${targetCell.cellId}**
 \`\`\`python
 ${targetCell.code}
-\`\`\``;
+\`\`\`
 
-/*
-Example Desired AI Response:
-Approved
-OR
-Rejected: Reason for rejection.
-*/
+**Evaluation Instructions:**
+You are tasked with evaluating whether the target cell adheres to the rules specified above. Respond with:
+- "Approved" if the cell complies with all rules.
+- "Rejected: <reason>" if the cell violates any rules.
 
-try {
-  // Print the prompt for debugging purposes
-  console.log('Prompt sent to Gemini AI:\n', prompt);
+Examples of valid responses:
+1. Approved
+2. Rejected: Saving data back to dataset folders is not allowed.`;
 
-  // Generate content using Gemini AI
-  const result = await model.generateContent(prompt);
-  const responseText = await result.response.text(); // Ensure we await the text
+  try {
+    // Print the prompt for debugging purposes
+    console.log('Prompt sent to Gemini AI:\n', prompt);
 
-  console.log('Gemini AI Response:', responseText); // For debugging
+    // Generate content using Gemini AI
+    const result = await model.generateContent(prompt);
+    const responseText = await result.response.text(); // Ensure we await the text
 
-  const lowerCaseResponse = responseText.trim().toLowerCase();
+    console.log('Gemini AI Response:', responseText); // For debugging
 
-  if (lowerCaseResponse.startsWith('approved')) {
-    return { approved: true, reason: '' };
-  } else if (lowerCaseResponse.startsWith('rejected')) {
-    const reasonMatch = responseText.match(/rejected:\s*(.*)/i);
-    const reason = reasonMatch ? reasonMatch[1].trim() : 'No reason provided.';
-    return { approved: false, reason };
-  } else {
-    // Handle unexpected responses
-    console.warn('Unexpected Gemini AI response format.');
-    return { approved: false, reason: 'Invalid response format from Gemini AI.' };
+    const lowerCaseResponse = responseText.trim().toLowerCase();
+
+    if (lowerCaseResponse.startsWith('approved')) {
+      return { approved: true, reason: '' };
+    } else if (lowerCaseResponse.startsWith('rejected')) {
+      const reasonMatch = responseText.match(/rejected:\s*(.*)/i);
+      const reason = reasonMatch ? reasonMatch[1].trim() : 'No reason provided.';
+      return { approved: false, reason };
+    } else {
+      // Handle unexpected responses
+      console.warn('Unexpected Gemini AI response format.');
+      return { approved: false, reason: 'Invalid response format from Gemini AI.' };
+    }
+  } catch (error) {
+    console.error('Error interacting with Gemini AI:', error);
+    throw new Error('Failed to approve code with Gemini AI.');
   }
-} catch (error) {
-  console.error('Error interacting with Gemini AI:', error);
-  throw new Error('Failed to approve code with Gemini AI.');
 }
-}
+
 module.exports = { approveSingleCell };

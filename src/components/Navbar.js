@@ -56,7 +56,7 @@ const Navbar = ({ user, setUser }) => {
   return (
     <nav className="navbar sticky">
       <div className="logo">
-        <NavLink to="/" onClick={closeMenu}>Your Website</NavLink>
+        <NavLink to="/" onClick={closeMenu}>CollaborHub</NavLink>
       </div>
 
       {/* Hamburger Menu Button */}

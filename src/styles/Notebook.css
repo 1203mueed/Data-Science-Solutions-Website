@@ -1,12 +1,15 @@
 /* src/styles/Notebook.css */
 
+/* Neutral Background for Notebook */
 .notebook {
   padding: 1rem;
-  background-color: #f5f5f5;
+  background-color: white; /* Neutral background for cleaner look */
   border-radius: 8px;
   margin-top: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Header Styling */
 .notebook-header {
   display: flex;
   justify-content: space-between;
@@ -14,12 +17,14 @@
   margin-bottom: 1rem;
 }
 
-.add-cell-buttons button {
-  margin-left: 0.5rem;
+/* Add Cell Buttons with Spacing */
+.add-cell-buttons {
+  display: flex;
+  gap: 0.5rem; /* Adds spacing between buttons */
 }
 
 .add-cell-btn {
-  background-color: #007bff;
+  background-color: #fa9405; /* Updated to match Execute button */
   color: white;
   padding: 0.5rem 1rem;
   border: none;
@@ -27,31 +32,35 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
 }
 
 .add-cell-btn:hover {
-  background-color: #0056b3;
+  background-color: #e08a00; /* Slightly darker shade on hover */
 }
 
+/* Individual Cell Styling */
 .cell {
   background-color: white;
   padding: 1rem;
   margin-bottom: 1rem;
   border: 1px solid #ddd;
   border-radius: 4px;
+  position: relative;
 }
 
+/* Cell Controls (Buttons and Indicators) */
 .cell-controls {
   display: flex;
   align-items: center;
   margin-top: 0.5rem;
 }
 
+/* Execute and Delete Buttons */
 .execute-btn,
-.delete-btn,
-.approve-btn,
-.reject-btn {
-  background-color: #28a745;
+.delete-btn {
+  background-color: #fa9405; /* Primary color */
   color: white;
   border: none;
   padding: 0.4rem 0.8rem;
@@ -61,32 +70,49 @@
   display: flex;
   align-items: center;
   font-size: 0.9rem;
+  transition: background-color 0.3s ease;
 }
 
 .execute-btn.disabled {
-  background-color: #6c757d;
+  background-color: #6c757d; /* Disabled state color */
   cursor: not-allowed;
 }
 
-.delete-btn {
-  background-color: #dc3545;
-}
-
-.approve-btn {
-  background-color: #28a745;
-}
-
-.reject-btn {
-  background-color: #dc3545;
-}
-
 .execute-btn:hover:not(.disabled),
-.delete-btn:hover,
-.approve-btn:hover,
-.reject-btn:hover {
-  opacity: 0.8;
+.delete-btn:hover {
+  opacity: 0.8; /* Slight transparency on hover */
 }
 
+.delete-btn {
+  background-color: #dc3545; /* Delete button color */
+}
+
+/* Approval Status Styling */
+.approval-status {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* Pushes the approval status to the far right */
+}
+
+.approval-status span {
+  margin-left: 0.3rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* Output Styling */
+.cell-output {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+/* Error Styling */
 .cell-error {
   background-color: #ffe6e6;
   color: #cc0000;
@@ -97,16 +123,7 @@
   font-family: monospace;
 }
 
-.cell-output {
-  background-color: #f0f0f0;
-  color: #333;
-  padding: 10px;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: monospace;
-}
-
+/* Rejection Reason Styling */
 .cell-rejection {
   margin-top: 0.5rem;
   padding: 0.5rem;
@@ -116,39 +133,16 @@
   color: #856404;
 }
 
-.approved-label {
+/* Approval and Rejection Indicators */
+.approval-indicator,
+.rejection-indicator {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
-  color: #28a745;
-  font-weight: bold;
 }
 
-.approved-label .icon {
-  margin-right: 0.3rem;
-}
-
-.rejected-label {
-  display: flex;
-  align-items: center;
-  color: #dc3545;
-  font-weight: bold;
-}
-
-.rejected-label .icon {
-  margin-right: 0.3rem;
-}
-
-.error-label {
-  display: flex;
-  align-items: center;
-  color: #dc3545;
-  font-weight: bold;
-}
-
-.error-label .icon {
-  margin-right: 0.3rem;
-}
-
+/* Spinner Animation */
 .spinner {
   animation: spin 2s linear infinite;
   margin-right: 0.5rem;
@@ -159,21 +153,50 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Markdown Cell Styling */
 .markdown-cell {
   padding: 0.5rem;
   background-color: #f8f9fa;
   border-radius: 4px;
 }
 
-.loading {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #555;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Additional Styles for CodeMirror */
+.CodeMirror {
+  font-family: 'Fira Code', monospace; /* Monospace font for better readability */
 }
 
-.loading .spinner {
+/* Alignment and spacing for approval and rejection indicators */
+.cell-controls .approval-indicator,
+.cell-controls .rejection-indicator {
   margin-right: 0.5rem;
+}
+
+/* Ensure buttons have consistent padding and font size */
+.execute-btn,
+.delete-btn,
+.add-cell-btn {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notebook {
+    padding: 0.5rem;
+  }
+
+  .add-cell-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .execute-btn,
+  .delete-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .approval-status span {
+    font-size: 0.8rem;
+  }
 }
