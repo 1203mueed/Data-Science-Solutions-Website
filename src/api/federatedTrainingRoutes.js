@@ -57,6 +57,28 @@ const datasetUploadStorage = multer.diskStorage({
 
 const datasetUpload = multer({ storage: datasetUploadStorage });
 
+
+// Configure Multer to use a temporary upload directory for Model Trainers
+const modelTrainerUploadStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    try {
+      // Use a temporary directory for initial upload
+      const tempDir = path.join(__dirname, '../assets/tempUploads');
+      await fs.mkdir(tempDir, { recursive: true });
+      cb(null, tempDir);
+    } catch (err) {
+      console.error('Error in Multer destination:', err.message);
+      cb(err, null);
+    }
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname); // Use original filename without unique suffix
+  },
+});
+
+const modelTrainerUpload = multer({ storage: modelTrainerUploadStorage });
+
+
 // ----- New Routes for Training Sessions -----
 
 // Create a new training session without notebook upload
@@ -75,8 +97,7 @@ router.get('/:projectId/trainings/:trainingId', getTrainingSessionDetails);
 // Upload files to a training session
 router.post(
   '/:projectId/trainings/:trainingId/files',
-  // Assuming no upload functionality is now present, you can remove or adjust this route accordingly
-  // If upload is still needed elsewhere, keep it; otherwise, remove the upload-related routes
+  modelTrainerUpload.array('files'), // Use 'files' as the field name
   uploadFilesToTraining
 );
 

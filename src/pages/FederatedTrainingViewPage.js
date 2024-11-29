@@ -1,4 +1,5 @@
 // src/pages/FederatedTrainingViewPage.js
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/FederatedTrainingViewPage.css';

@@ -757,21 +757,39 @@ const createTrainingSession = async (req, res) => {
  * Upload additional files to a training session.
  */
 const uploadFilesToTraining = async (req, res) => {
-  const { projectId, trainingId } = req.params;
-  const files = req.files;
-
-  if (!files || files.length === 0) {
-    return res.status(400).json({ error: 'At least one file is required to upload.' });
-  }
-
   try {
-    const federatedTraining = await FederatedTraining.findById(projectId);
+    const { projectId, trainingId } = req.params;
+    const { userId } = req.body; // Extract userId from form data
 
-    if (!federatedTraining) {
-      return res.status(404).json({ error: 'Project not found.' });
+    console.log('Received upload request:');
+    console.log('Project ID:', projectId);
+    console.log('Training ID:', trainingId);
+    console.log('User ID:', userId);
+
+    // Validate required fields
+    if (!projectId || !trainingId || !userId) {
+      return res.status(400).json({ error: 'Project ID, Training ID, and User ID are required.' });
     }
 
-    const trainingSession = federatedTraining.trainingHistory.find(
+    // Fetch the federated training project
+    const training = await FederatedTraining.findById(projectId).populate('modelTrainer').populate('dataProviders.user');
+
+    if (!training) {
+      return res.status(404).json({ error: 'Federated training project not found.' });
+    }
+
+    // Determine if the uploader is the Model Trainer
+    const isModelTrainer = training.modelTrainer._id.toString() === userId;
+    const modelTrainerId = training.modelTrainer._id.toString();
+    console.log('Model Trainer:', modelTrainerId);
+    console.log(`Is Model Trainer: ${isModelTrainer}`);
+
+    if (!isModelTrainer) {
+      return res.status(403).json({ error: 'Only the model trainer can upload files to the project directory.' });
+    }
+
+    // Find the specific training session
+    const trainingSession = training.trainingHistory.find(
       (session) => session.trainingId.toString() === trainingId
     );
 
@@ -779,29 +797,46 @@ const uploadFilesToTraining = async (req, res) => {
       return res.status(404).json({ error: 'Training session not found.' });
     }
 
-    files.forEach((file) => {
-      const relativeFilePath = path.relative(
-        path.join(__dirname, '../assets/DatasetUploads', federatedTraining.projectFolder),
-        file.path
-      );
+    // Check if files are uploaded
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'At least one file is required.' });
+    }
 
+    // Define the target directory as the project folder
+    const projectFolderPath = path.join(__dirname, '../assets/DatasetUploads', training.projectFolder);
+
+    // Ensure the project directory exists
+    await fs.mkdir(projectFolderPath, { recursive: true });
+
+    // Iterate through each file and move them to the project directory
+    for (let i = 0; i < req.files.length; i++) {
+      const file = req.files[i];
+      const relativePath = file.originalname; // Using original filename
+
+      // Construct the full target path
+      const targetPath = path.join(projectFolderPath, relativePath);
+
+      // Move the file from the temp directory to the target path
+      await fs.rename(file.path, targetPath);
+      console.log(`Moved file ${file.originalname} to ${targetPath}`);
+
+      // Optionally, update trainingSession.files if needed
       trainingSession.files.push({
         filename: file.originalname,
-        filepath: relativeFilePath,
+        filepath: relativePath,
       });
-      console.log(`Uploaded file: ${file.originalname} to ${relativeFilePath}`);
-    });
+    }
 
-    await federatedTraining.save();
+    // Save the training document
+    await training.save();
 
     // Rebuild project folder structure
-    const projectFolderPath = path.join(__dirname, '../assets/DatasetUploads', federatedTraining.projectFolder);
-    const projectChildren = await buildFolderStructure(projectFolderPath);
+    const folderStructure = await buildFolderStructure(projectFolderPath);
     const projectFolderStructure = [
       {
-        name: federatedTraining.projectFolder,
+        name: training.projectFolder,
         type: 'folder',
-        children: projectChildren,
+        children: folderStructure,
       },
     ];
 
@@ -810,11 +845,12 @@ const uploadFilesToTraining = async (req, res) => {
       files: trainingSession.files,
       projectFolderStructure: projectFolderStructure,
     });
-  } catch (error) {
-    console.error('Error uploading files to training session:', error);
-    res.status(500).json({ error: 'An error occurred while uploading files to the training session.' });
+  } catch (err) {
+    console.error('Error in uploadFilesToTraining:', err.message);
+    res.status(500).json({ error: 'Internal server error.' });
   }
 };
+
 
 /**
  * Download a specific file from a training session.

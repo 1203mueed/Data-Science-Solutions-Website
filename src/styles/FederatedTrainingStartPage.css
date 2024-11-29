@@ -1,75 +1,98 @@
 /* src/styles/FederatedTrainingStartPage.css */
 
+/* Federated Training Start Page Container */
 .federated-training-start-page {
   max-width: 800px;
   margin: 60px auto;
   padding: 30px;
-  background-color: #ffffff;
+  background-color: var(--background-color);
   border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: var(--font-family);
 }
 
+/* Page Title */
 .federated-training-start-page h1 {
   text-align: center;
   margin-bottom: 30px;
-  color: #333333;
+  color: var(--primary-color);
   font-size: 2.5rem;
 }
 
+/* Federated Training Form */
 .federated-training-form {
   display: flex;
   flex-direction: column;
 }
 
+/* Form Group Styling */
 .form-group {
   margin-bottom: 25px;
   display: flex;
   flex-direction: column;
 }
 
+/* Form Labels */
 .form-group label {
   font-weight: 600;
   margin-bottom: 8px;
-  color: #555555;
+  color: var(--text-color);
 }
 
+/* Required Field Indicator */
 .required {
   color: #e74c3c;
   margin-left: 4px;
 }
 
+/* Form Inputs and Textarea */
 .form-group input[type="text"],
 .form-group input[type="email"],
 .form-group textarea {
   padding: 12px 15px;
-  border: 1px solid #cccccc;
+  border: 1px solid var(--medium-gray);
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.3s ease;
 }
 
+/* Focus States */
 .form-group input[type="text"]:focus,
 .form-group input[type="email"]:focus,
 .form-group textarea:focus {
-  border-color: #4CAF50;
+  border-color: var(--primary-color);
   outline: none;
 }
 
+/* Textarea Specific */
 .form-group textarea {
   resize: vertical;
   min-height: 100px;
 }
 
+/* Email Input Group */
 .email-input-group {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
 }
 
+/* Email Input */
 .email-input-group input[type="email"] {
   flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
 }
 
+.email-input-group input[type="email"]:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+/* Remove Email Button */
 .remove-email-btn {
   background-color: #e74c3c;
   border: none;
@@ -79,55 +102,89 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .remove-email-btn:hover {
   background-color: #c0392b;
+  transform: translateY(-2px);
 }
 
+/* Add Email Button */
 .add-email-btn {
-  background-color: #3498db;
-  color: #ffffff;
+  background-color: var(--secondary-color);
+  color: var(--background-color);
   border: none;
   padding: 10px 15px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
   align-self: flex-start;
 }
 
 .add-email-btn:hover {
-  background-color: #2980b9;
+  background-color: var(--primary-color);
+  transform: translateY(-2px);
 }
 
+/* Submit Button */
 .submit-btn {
-  background-color: #2ecc71;
-  color: #ffffff;
+  background-color: var(--primary-color);
+  color: var(--background-color);
   border: none;
   padding: 12px 20px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 1.1rem;
-  transition: background-color 0.3s ease;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .submit-btn:hover {
-  background-color: #27ae60;
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
 }
 
 .submit-btn:disabled {
-  background-color: #95a5a6;
+  background-color: var(--medium-gray);
   cursor: not-allowed;
 }
 
+/* Error Message Styling */
 .error-message {
   color: #e74c3c;
   font-size: 0.9rem;
   margin-top: 5px;
 }
 
+/* Input Error State */
 .input-error {
   border-color: #e74c3c;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .federated-training-start-page {
+    padding: 20px;
+  }
+
+  .federated-training-start-page h1 {
+    font-size: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .add-email-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 10px 18px;
+    font-size: 1rem;
+  }
 }

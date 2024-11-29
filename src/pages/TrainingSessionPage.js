@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import '../styles/TrainingSessionPage.css';
 import Notebook from '../components/Notebook'; // Adjust the path as necessary
 import FileTree from '../components/FileTree'; // Import the FileTree component
+import PropTypes from 'prop-types';
 
 const TrainingSessionPage = ({ user }) => {
   const { projectId, trainingId } = useParams();
@@ -64,7 +65,7 @@ const TrainingSessionPage = ({ user }) => {
   const handleFileUpload = async (e) => {
     e.preventDefault();
     if (!fileUpload || fileUpload.length === 0) {
-      alert('Please select at least one file to upload.');
+      toast.error('Please select at least one file to upload.');
       return;
     }
 
@@ -75,6 +76,11 @@ const TrainingSessionPage = ({ user }) => {
         formData.append('files', fileUpload[i]);
       }
 
+      // Append userId correctly based on user object structure
+      const userId = user.userId || user._id; // Adjust based on actual user object
+      console.log('Uploading files for userId:', userId);
+      formData.append('userId', userId);
+
       const res = await fetch(
         `http://localhost:5000/api/federated-training/${projectId}/trainings/${trainingId}/files`,
         {
@@ -83,24 +89,24 @@ const TrainingSessionPage = ({ user }) => {
         }
       );
 
+      const data = await res.json();
+
       if (res.ok) {
-        const data = await res.json();
         setTrainingSession((prevSession) => ({
           ...prevSession,
-          files: data.files,
-          projectFolderStructure: data.projectFolderStructure,
+          files: data.files, // Updated files
+          projectFolderStructure: data.projectFolderStructure, // Updated folder structure
         }));
-        alert('Files uploaded successfully.');
+        toast.success('Files uploaded successfully.');
         setFileUpload(null);
         setFileInputKey(Date.now());
       } else {
-        const errorData = await res.json();
-        console.error('Error uploading files:', errorData);
-        alert(`Error: ${errorData.error || 'Failed to upload files.'}`);
+        console.error('Error uploading files:', data);
+        toast.error(`Error: ${data.error || 'Failed to upload files.'}`);
       }
     } catch (err) {
       console.error('Error uploading files:', err);
-      alert('An error occurred while uploading the files.');
+      toast.error('An error occurred while uploading the files.');
     } finally {
       setUploading(false);
     }
@@ -228,6 +234,15 @@ const TrainingSessionPage = ({ user }) => {
       </div>
     </div>
   );
+};
+
+// Define PropTypes for better type checking
+TrainingSessionPage.propTypes = {
+  user: PropTypes.shape({
+    userId: PropTypes.string.isRequired, // Use 'userId' based on user object
+    _id: PropTypes.string,               // Include '_id' if applicable
+    // Add other user fields if necessary
+  }).isRequired,
 };
 
 export default TrainingSessionPage;
