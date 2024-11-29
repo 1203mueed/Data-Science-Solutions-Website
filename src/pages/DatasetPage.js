@@ -1,4 +1,5 @@
 // src/pages/DatasetPage.js
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/DatasetPage.css';
@@ -100,6 +101,7 @@ const DatasetPage = ({ user }) => {
   const navigate = useNavigate();
   const [datasets, setDatasets] = useState([]);
   const [filters, setFilters] = useState({ category: '', dataType: '', status: '', priceRange: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const datasetsPerPage = 5;
 
@@ -119,11 +121,27 @@ const DatasetPage = ({ user }) => {
     fetchDatasets();
   }, []);
 
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+    setCurrentPage(1); // Reset to first page on filter change
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
   const filteredDatasets = datasets.filter((dataset) => (
     (filters.category ? dataset.category === filters.category : true) &&
     (filters.dataType ? dataset.dataType === filters.dataType : true) &&
     (filters.status ? dataset.status === filters.status : true) &&
-    (filters.priceRange ? dataset.price.toString().includes(filters.priceRange) : true)
+    (filters.priceRange ? (
+      filters.priceRange === 'Free' ? dataset.price === 0 :
+      filters.priceRange === 'Below $50' ? dataset.price < 50 :
+      filters.priceRange === 'Below $100' ? dataset.price < 100 :
+      true
+    ) : true) &&
+    (searchQuery ? dataset.name.toLowerCase().includes(searchQuery.toLowerCase()) : true)
   ));
 
   const indexOfLastDataset = currentPage * datasetsPerPage;
@@ -134,10 +152,6 @@ const DatasetPage = ({ user }) => {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-  };
-
-  const handleFilterChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
   const handleButtonClick = (path) => {
@@ -153,62 +167,90 @@ const DatasetPage = ({ user }) => {
     <div className="dataset-page">
       <h1 className="dataset-title">Datasets</h1>
 
+      {/* Action Buttons Section */}
       <section className="action-buttons">
         <button
-          className="action-btn"
+          className="action-btn upload-dataset-btn"
           onClick={() => handleButtonClick('/upload-dataset')}
         >
           Upload Dataset
         </button>
         <button
-          className="action-btn"
+          className="action-btn request-dataset-btn"
           onClick={() => handleButtonClick('/request-dataset')}
         >
           Request Dataset
         </button>
       </section>
 
-      <section className="filters-section">
-        <h2>Filter Datasets</h2>
-        <select name="category" onChange={handleFilterChange}>
-          <option value="">All Categories</option>
-          <option value="Medical">Medical</option>
-          <option value="Health">Health</option>
-          <option value="Environment">Environment</option>
-          <option value="Geospatial">Geospatial</option>
-        </select>
-        <select name="dataType" onChange={handleFilterChange}>
-          <option value="">All Data Types</option>
-          <option value="Image">Image</option>
-          <option value="Tabular">Tabular</option>
-        </select>
-        <select name="status" onChange={handleFilterChange}>
-          <option value="">All Status</option>
-          <option value="uploaded">Uploaded</option>
-          <option value="requested">Requested</option>
-        </select>
-        <select name="priceRange" onChange={handleFilterChange}>
-          <option value="">All Price Ranges</option>
-          <option value="0">Free</option>
-          <option value="50">Below $50</option>
-          <option value="100">Below $100</option>
-        </select>
+      {/* Search Section */}
+      <section className="search-section">
+        <input
+          type="text"
+          placeholder="Search datasets..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          aria-label="Search Datasets"
+        />
+        <button onClick={() => { /* Implement search functionality if needed */ }}>Search</button>
       </section>
 
-      <section className="dataset-list">
-        <h2>Available Datasets</h2>
-        {currentDatasets.map((dataset) => (
-          <div key={dataset._id} className="dataset-card">
-            <h3>{dataset.name}</h3>
-            <p><strong>Category:</strong> {dataset.category}</p>
-            <p><strong>Data Type:</strong> {dataset.dataType}</p>
-            <p><strong>Price:</strong> {dataset.price === 0 ? 'Free' : `$${dataset.price}`}</p>
-            <p><strong>Status:</strong> {dataset.status}</p>
-          </div>
-        ))}
-        {filteredDatasets.length === 0 && <p>No datasets found.</p>}
+      {/* Content Section with Filters and Dataset List */}
+      <section className="content-section">
+        <aside className="filter-options">
+          <h3>Filter Datasets</h3>
+          <label htmlFor="category">Category</label>
+          <select name="category" id="category" onChange={handleFilterChange}>
+            <option value="">All Categories</option>
+            <option value="Medical">Medical</option>
+            <option value="Health">Health</option>
+            <option value="Environment">Environment</option>
+            <option value="Geospatial">Geospatial</option>
+          </select>
+
+          <label htmlFor="dataType">Data Type</label>
+          <select name="dataType" id="dataType" onChange={handleFilterChange}>
+            <option value="">All Data Types</option>
+            <option value="Image">Image</option>
+            <option value="Tabular">Tabular</option>
+          </select>
+
+          <label htmlFor="status">Status</label>
+          <select name="status" id="status" onChange={handleFilterChange}>
+            <option value="">All Status</option>
+            <option value="uploaded">Uploaded</option>
+            <option value="requested">Requested</option>
+          </select>
+
+          <label htmlFor="priceRange">Price Range</label>
+          <select name="priceRange" id="priceRange" onChange={handleFilterChange}>
+            <option value="">All Price Ranges</option>
+            <option value="Free">Free</option>
+            <option value="Below $50">Below $50</option>
+            <option value="Below $100">Below $100</option>
+          </select>
+
+          <button className="apply-filter-btn">Apply Filters</button>
+        </aside>
+
+        <div className="dataset-list">
+          <h2>Available Datasets</h2>
+          {currentDatasets.map((dataset) => (
+            <div key={dataset._id} className="dataset-card">
+              <h3>{dataset.name}</h3>
+              <p><strong>Category:</strong> {dataset.category}</p>
+              <p><strong>Data Type:</strong> {dataset.dataType}</p>
+              <p><strong>Price:</strong> {dataset.price === 0 ? 'Free' : `$${dataset.price}`}</p>
+              <p><strong>Status:</strong> {dataset.status}</p>
+              <p className="details">{dataset.details}</p>
+              {/* Removed action-buttons div and buttons */}
+            </div>
+          ))}
+          {filteredDatasets.length === 0 && <p>No datasets found.</p>}
+        </div>
       </section>
 
+      {/* Pagination Section */}
       <section className="pagination">
         {Array.from({ length: totalPages }, (_, i) => (
           <button

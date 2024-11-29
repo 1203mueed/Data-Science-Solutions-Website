@@ -12,7 +12,7 @@ const ContactPage = () => {
       <section className="contact-info">
         <div className="info-item">
           <h3>Email</h3>
-          <p>support@yourwebsite.com</p>
+          <p>support@collaborhub.org</p>
         </div>
         <div className="info-item">
           <h3>Phone</h3>
@@ -20,7 +20,7 @@ const ContactPage = () => {
         </div>
         <div className="info-item">
           <h3>Address</h3>
-          <p>123 Main Street, Suite 400<br />Your City, Your State, ZIP</p>
+          <p>Block: B<br />Bashundhara, Dhaka-1229</p>
         </div>
       </section>
 

@@ -6,7 +6,7 @@ const PricingPage = () => {
   const pricingPlans = [
     {
       title: "Basic",
-      price: "$0",
+      price: "৳০",
       features: [
         "Access to free datasets",
         "Basic CPU usage (1 core)",
@@ -17,7 +17,7 @@ const PricingPage = () => {
     },
     {
       title: "Standard",
-      price: "$49/month",
+      price: "৳১৪৯/month",
       features: [
         "Access to premium datasets",
         "Standard GPU usage (4 cores)",
@@ -29,7 +29,7 @@ const PricingPage = () => {
     },
     {
       title: "Premium",
-      price: "$99/month",
+      price: "৳৩৯৯/month",
       features: [
         "Unlimited dataset access",
         "Advanced GPU and CPU usage",

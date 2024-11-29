@@ -2,6 +2,12 @@
     --primary-color: #fa9405;
     --secondary-color: #f0ad4e;
     --navbar-height: 70px;
+    --danger-color: #dc3545; /* Red for delete actions */
+    --success-color: #28a745; /* Green for success indicators */
+    --light-gray: #f9f9f9;
+    --medium-gray: #ddd;
+    --dark-gray: #555;
+    --font-family: 'Arial, sans-serif';
 }
 
 html, body {

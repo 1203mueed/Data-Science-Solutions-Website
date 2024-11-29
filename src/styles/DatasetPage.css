@@ -1,93 +1,251 @@
+/* src/styles/DatasetPage.css */
+
+/* Root Variables for Consistent Theming */
+:root {
+  --primary-color: #fa9405; /* Dark Orange */
+  --secondary-color: #ffb84d; /* Light Orange */
+  --danger-color: #dc3545; /* Red for delete actions */
+  --success-color: #28a745; /* Green for success indicators */
+  --light-gray: #f9f9f9;
+  --medium-gray: #ddd;
+  --dark-gray: #555;
+}
+
+/* Dataset Page Container */
 .dataset-page {
-    padding: 2rem;
+  padding: 2rem;
+  background-color: var(--light-gray);
+  min-height: 100vh;
+}
+
+/* Title Styling */
+.dataset-title {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--primary-color);
+}
+
+/* Action Buttons Section */
+.action-buttons {
+  display: flex;
+  justify-content: center; /* Center the buttons */
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.action-btn {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.action-btn:hover {
+  background-color: var(--secondary-color); /* Light Orange on hover */
+  color: white; /* Maintain white text */
+}
+
+/* Search Section */
+.search-section {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+
+.search-section input {
+  width: 40%;
+  padding: 10px 15px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.search-section button {
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-section button:hover {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+/* Content Section */
+.content-section {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Filter Options (Sidebar) */
+.filter-options {
+  width: 250px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-options h3 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.filter-options label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #333;
+}
+
+.filter-options select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--medium-gray);
+  margin-top: 5px;
+}
+
+.apply-filter-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px 15px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.apply-filter-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Dataset List */
+.dataset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  align-items: flex-start; /* Align the list slightly to the left */
+  margin-left: 40px; /* Adjusted to align with search bar */
+}
+
+.dataset-list h2 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  text-align: left; /* Align heading to the left */
+  width: 100%;
+}
+
+/* Dataset Card Styling */
+.dataset-card {
+  width: 100%;
+  max-width: 800px;
+  background-color: #ffe0b2;
+  padding: 20px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, background-color 0.3s, color 0.3s;
+}
+
+.dataset-card:hover {
+  transform: translateY(-5px);
+  background-color: white; /* Match Papers Page hover: background to white */
+  color: inherit; /* Maintain original text color */
+}
+
+.dataset-card h3 {
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.dataset-card:hover {
+  background-color: white;
+  transform: translateY(-5px);
+}
+.dataset-card p {
+  margin: 5px 0;
+  color: #333;
+}
+
+.dataset-card .details {
+  font-style: italic;
+  color: var(--dark-gray);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.page-btn {
+  padding: 8px 12px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--medium-gray);
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.page-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.page-btn:hover {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .search-section input {
+    width: 60%;
   }
-  
-  .dataset-title {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    text-align: center;
+
+  .filter-options {
+    width: 100%;
+    margin-bottom: 20px;
   }
-  
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  
-  .action-btn {
-    padding: 0.75rem 1.5rem;
-    background-color: var(--primary-color);
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  
-  .action-btn:hover {
-    background-color: #ff8c00;
-    color: #000;
-  }
-  
-  .filters-section {
-    margin-bottom: 2rem;
-    text-align: center;
-  }
-  
-  .filters-section select {
-    margin: 0.5rem;
-    padding: 0.5rem;
-  }
-  
-  .dataset-list {
-    display: flex;
+
+  .content-section {
     flex-direction: column;
     align-items: center;
   }
-  
+
+  .dataset-list {
+    margin-left: 0; /* Remove left margin on small screens */
+    align-items: center; /* Center align datasets on small screens */
+  }
+
+  .dataset-list h2 {
+    text-align: center;
+  }
+
   .dataset-card {
-    width: 90%;
-    max-width: 600px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s, background-color 0.3s, color 0.3s;
+    max-width: 100%;
   }
-  
-  .dataset-card:hover {
-    transform: translateY(-5px);
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
-  }
-  
-  .page-btn {
-    padding: 0.5rem 1rem;
-    margin: 0 0.25rem;
-    border: none;
-    border-radius: 5px;
-    background-color: #ddd;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  
-  .page-btn.active {
-    background-color: var(--primary-color);
-    color: #fff;
-  }
-  
-  .page-btn:hover {
-    background-color: #ff8c00;
-    color: #000;
-  }
-  
+}
