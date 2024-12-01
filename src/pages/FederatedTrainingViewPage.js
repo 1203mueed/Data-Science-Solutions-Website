@@ -199,10 +199,12 @@ const FederatedTrainingViewPage = ({ user }) => {
                 <div className="training-card">
                   <h3>{training.projectName}</h3>
                   <p>{training.description}</p>
-                  <p>
-                    <strong>Model Trainer:</strong>{' '}
-                    {training.modelTrainer ? training.modelTrainer.name : 'N/A'}
-                  </p>
+                  {/* Added Model Trainer Email */}
+                  {training.modelTrainer && training.modelTrainer.email && (
+                    <p>
+                      <strong>Model Trainer:</strong> {training.modelTrainer.email}
+                    </p>
+                  )}
                   <p>
                     <strong>Status:</strong> {providerStatus}
                   </p>

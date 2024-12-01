@@ -1,4 +1,18 @@
-/* Navbar Styling */
+/* src/styles/Navbar.css */
+
+/* Root Variables (Ensure these are defined globally, e.g., in variables.css) */
+:root {
+  --primary-color: #fa9405; /* Dark Orange */
+  --secondary-color: #ffb84d; /* Light Orange */
+  --background-color: #ffffff; /* White */
+  --text-color: #333333; /* Dark Gray */
+  --light-gray: #f5f5f5;
+  --medium-gray: #dddddd;
+  --dark-gray: #555555;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Consistent Font */
+}
+
+/* Navbar Container */
 .navbar {
   position: fixed;
   top: 0;
@@ -14,6 +28,7 @@
   height: 60px; /* Set a fixed height for the navbar */
 }
 
+/* Logo Styling */
 .navbar .logo a {
   font-size: 1.25rem; /* Adjusted font size */
   font-weight: bold;
@@ -21,6 +36,7 @@
   text-decoration: none;
 }
 
+/* Navigation Links */
 .navbar ul {
   display: flex;
   align-items: center; /* Ensure alignment with the profile image */
@@ -33,6 +49,7 @@
   margin-left: 0.5rem; /* Adjusted spacing */
 }
 
+/* Navigation Links Styling */
 .navbar ul li a,
 .login-btn {
   color: #fff;
@@ -51,7 +68,7 @@
   color: #000;
 }
 
-/* Profile Image Styling */
+/* Profile Container */
 .profile-container {
   position: relative;
   cursor: pointer;
@@ -60,6 +77,7 @@
   justify-content: center;
 }
 
+/* Profile Button Styling */
 .profile-button {
   background: none;
   border: none;
@@ -71,13 +89,15 @@
   outline: none;
 }
 
+/* Profile Image Styling */
 .profile-image {
-  width: 35px; /* Adjusted size */
-  height: 35px;
+  width: 40px; /* Increased size for better visibility */
+  height: 40px;
   border-radius: 50%;
   border: 2px solid var(--primary-color);
-  object-fit: cover;
-  overflow: hidden; /* Ensure content stays within the circle */
+  object-fit: contain; /* Changed to contain to show the full image */
+  background-color: #e0e0e0; /* Light gray background to handle empty space */
+  padding: 2px; /* Optional: Adds space between image and border */
 }
 
 /* Dropdown Menu Styling */
@@ -86,12 +106,15 @@
   top: calc(100% + 10px); /* Position below the profile image with a gap */
   right: 0;
   background-color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Increased shadow for prominence */
   border-radius: 8px;
   overflow: hidden;
   z-index: 1000;
   display: none; /* Hidden by default */
   flex-direction: column;
+  min-width: 180px; /* Increased min-width for better visibility */
+  /* Optional: Set a max-width if needed */
+  /* max-width: 250px; */
 }
 
 .dropdown-menu.show {
@@ -99,14 +122,14 @@
 }
 
 .dropdown-menu button {
-  padding: 0.4rem 0.8rem; /* Adjusted padding */
+  padding: 0.6rem 1rem; /* Adjusted padding */
   background: none;
   border: none;
   text-align: left;
   cursor: pointer;
-  font-size: 0.85rem; /* Adjusted font size */
+  font-size: 0.9rem; /* Adjusted font size */
   color: #333;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .dropdown-menu button:hover {
@@ -124,7 +147,7 @@
 
 .menu-toggle .hamburger {
   width: 25px; /* Adjusted size */
-  height: 2px;
+  height: 3px; /* Slightly increased height for better visibility */
   background-color: #fff;
   margin: 5px 0;
   transition: all 0.3s ease;
@@ -175,11 +198,12 @@
   /* Adjust dropdown menu for mobile */
   .dropdown-menu {
     position: static;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.95);
     box-shadow: none;
     border-radius: 0;
     display: none; /* Hidden by default */
     width: 100%;
+    min-width: unset; /* Remove min-width for mobile */
   }
 
   .dropdown-menu.show {
@@ -189,7 +213,7 @@
   .dropdown-menu button {
     width: 100%;
     text-align: center;
-    font-size: 0.85rem; /* Adjusted font size */
+    font-size: 0.9rem; /* Adjusted font size */
   }
 
   /* Ensure nav-links do not exceed the viewport width */
