@@ -2,6 +2,42 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Demo
+
+This is the demo video link of the project: [https://youtu.be/eAFerDGQ3os?si=ttllP5-pXwUlZyZ3](https://youtu.be/eAFerDGQ3os?si=ttllP5-pXwUlZyZ3)
+
+## Environment Setup
+
+**Instructions for the user:**
+
+You need to create a `.env` file in the `src/server` folder. The `.env` file should contain the following:
+
+```env
+PYTHON_EXECUTABLE=path_to_python_exe
+GEMINI_API_KEY=your_gemini_api_key
+MONGO_URI=your_mongodb_uri
+```
+
+## Starting the Application
+
+#### Start the Server
+From the project’s root directory, run:
+```bash
+node src/server/server.js
+```
+#### Start the Kernel
+Navigate to the `src/server` directory and start the kernel:
+```bash
+cd src/server
+python kernel_server.py
+```
+
+#### Start the React Application
+Return to the project’s root directory and run:
+```bash
+npm start
+```
+
 ## Available Scripts
 
 In the project directory, you can run:
